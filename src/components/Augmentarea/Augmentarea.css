@@ -1,0 +1,33 @@
+.area2{
+    height: 165px;
+    background-color: azure;
+}
+.area2 p{
+    margin: 0;
+}
+
+.augHead{
+    height: 20px;
+}
+
+.union{
+    height: 75px;
+}
+
+.changeline{
+    word-wrap:break-word;
+    word-break:break-all;
+}
+
+.maxZ{
+    z-index: 1001 !important;
+}
+
+.scroll{
+    overflow-y: auto;
+    max-height: 600px;
+}
+
+.fr{
+    float: right;
+}
