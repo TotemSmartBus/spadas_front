@@ -65,6 +65,7 @@ export default class Augmentarea extends Component {
     }
 
     handleUnionSearch = () => {
+        debugger;
         axios.post(global.config.url+'/dsquery',{k:global.config.k,dim:2,querydata:this.state.uniondata,mode:global.config.mode})
         .then(res=>{
             //console.log(res)
@@ -74,7 +75,7 @@ export default class Augmentarea extends Component {
     }
 
     handleJoin = () => {
-        axios.get(global.config.url+'/join?queryid='+this.state.joinId[0]+'&datasetid='+this.state.joinId[1])
+        axios.get(global.config.url+'?queryid='+this.state.joinId[0]+'&datasetid='+this.state.joinId[1])
             .then(res=>{
                 //console.log(res.data);
                 var joindata = this.state.previewBody

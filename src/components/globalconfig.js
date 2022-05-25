@@ -3,9 +3,9 @@
 
 global.config = {
     // 生产环境server
-    url:"http://101.43.173.70:9000/",
+    // url:"http://101.43.173.70:9000/",
     // 开发、测试环境server
-    //url: "http://localhost:9000/",
+    url: "http://localhost:9000/",
     k:10,
     error:0,
     mode:0,
