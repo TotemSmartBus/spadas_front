@@ -21,6 +21,7 @@ export default class SearchDetail extends Component {
         window.open(url)
     }
 
+    // 测试
     render() {
         //console.log(this.props);
         var {id,filename,matrix} = this.props
