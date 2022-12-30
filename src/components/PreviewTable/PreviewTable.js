@@ -8,7 +8,7 @@ export default class PreviewTable extends Component {
     render() {
         const{header,rows} = this.props
         return (
-        <table border="1">
+        <table border="1" class="table table-striped">
             <tbody>
                 <TableHeader header={header}/> 
                 {

@@ -43,7 +43,7 @@ export default class ParamSetting extends Component {
         return (
             <div className="area">
                 {/* MetricMode dropdown menu */}
-                <div className="input-group mb-3 pm0">
+                <div className="input-group mb-3 pm0 mt-3">
                     <select className="custom-select" id="inputGroupSelect02"  onChange={(e) => {this.setState({selMode:e.target.value})}} >
                     {
                         this.state.modes.map((item,index) =>{

@@ -7,16 +7,26 @@ import '../globalconfig'
 
 export default class SearchDetail extends Component {
 
-    handleSearchRelatedClicked = () =>{
-        axios.post(global.config.url+'/dsquery',{k:global.config.k,dim:2,querydata:this.props.matrix,mode:global.config.mode})
-        .then(res=>{
-            console.log(res)
-            Pubsub.publish("dsquery2Map",{ querynode:{querydata:this.props.matrix,querytype:this.props.type,queryname:this.props.filename},nodesVo:res.data.nodes,mode:1})
-            Pubsub.publish("searchhits",{data:res.data.nodes})
-        })
+    handleSearchRelatedClicked = () => {
+        axios.post(global.config.url + '/dsquery', { k: global.config.k, dim: 2, querydata: this.props.matrix, mode: global.config.mode })
+            .then(res => {
+                console.log(res)
+                Pubsub.publish("dsquery2Map", {
+                    querynode: {
+                        querydata: this.props.matrix,
+                        querytype: this.props.type,
+                        queryname: this.props.filename
+                    },
+                    nodesVo: res.data.nodes,
+                    mode: 1,
+                    opMode: 0,
+                    dsQueryNode: this.props.node
+                })
+                Pubsub.publish("searchhits", { data: res.data.nodes })
+            })
     }
 
-    handleDownloadClicked = () =>{
+    handleDownloadClicked = () => {
         var url = global.config.url + "file/" + this.props.filename
         window.open(url)
     }
@@ -24,14 +34,15 @@ export default class SearchDetail extends Component {
     // 测试
     render() {
         //console.log(this.props);
-        var {id,filename,matrix} = this.props
+        var { id, filename, node } = this.props
+        // console.log(node)
         // if(this.props!==undefined&&id!==null){
         //     rootToDataset = this.props.id
         // }
         return (
-            <div style={{position:"relative"}}>
+            <div style={{ position: "relative" }}>
                 <div className="card ">
-                    <div className="card-header" style={{padding:"0.5rem"}}>
+                    <div className="card-header" style={{ padding: "0.5rem" }}>
                         <ul className="nav nav-tabs card-header-tabs">
                             <li className="nav-item">
                                 <a className="nav-link active" href="#">Metadata</a>
@@ -44,22 +55,24 @@ export default class SearchDetail extends Component {
                             </li>
                         </ul>
                     </div>
-                    
-                        {(id===undefined||id===null)?
-                        "":
-                        (<div className="card-body pre-scrollable" style={{padding:"0.75rem"}}>
+
+                    {(id === undefined || id === null) ?
+                        "" :
+                        (<div className="card-body pre-scrollable" style={{ padding: "0.75rem" }}>
                             <h5 className="card-title mb-2">{filename}</h5>
-                                <p className="card-text mb-2"><b>Description:</b> With supporting text below as a natural lead-in to additional content.</p>
+                            {/* <p className="card-text mb-2"><b>Description:</b> With supporting text below as a natural lead-in to additional content.</p> */}
+                            <p className="card-text mb-2">
+                                "Pivot": [{node.pivot[0].toFixed(4)}, {node.pivot[1].toFixed(4)}] <br />
+                                "Radius": {node.radius.toFixed(4)} <br />
+                                "CoveredPoints": {node.totalCoveredPoints}
+                            </p>
                             <span href="#" className="btn btn-primary" onClick={this.handleSearchRelatedClicked}>
                                 <span className=" sFont"> SearchRelated</span>
                             </span>
-                            <span href="#" className="btn btn-primary" style={{marginLeft:"1rem"}} onClick={this.handleDownloadClicked}>
+                            <span href="#" className="btn btn-primary" style={{ marginLeft: "1rem" }} onClick={this.handleDownloadClicked}>
                                 <span className=" sFont"> Download</span>
                             </span>
                         </div>)}
-
-                    
-
                 </div>
             </div>
         )

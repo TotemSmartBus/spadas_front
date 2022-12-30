@@ -49,12 +49,27 @@
 .search{
   display: inline-block;
   position: absolute;
-  right: 10rem;
+  right: 16.5rem;
   bottom: 2rem;
   letter-spacing: -2px; 
 }
 
+.refresh{
+  display: inline-block;
+  position: absolute;
+  right: 10rem;
+  bottom: 2rem;
+  letter-spacing: -2px; 
+  width: 100px;
+}
+
+/* pointer-events属性使该元素上的点击事件失效，才能触发下层元素的点击事件 */
 .modposition{
-  position: relative;
-  bottom: 29px;
+  display: inline-block;
+  text-align: center;
+  position: absolute;
+  top: 0px;
+  /* left: 10px; */
+  pointer-events: none;
+  /* bottom: 30px; */
 }
