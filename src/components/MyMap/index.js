@@ -170,8 +170,8 @@ export default class index extends Component {
             this.map.removeLayer(this.shades)
         if (this.rec !== null)
             this.rec.remove()
-        this.shades = new window.L.LeafletShades();
-        this.shades.addTo(this.map);
+        // this.shades = new window.L.LeafletShades();
+        // this.shades.addTo(this.map);
     }
 
     drawOp(opMode, clickId) {
@@ -291,18 +291,17 @@ export default class index extends Component {
                 // PubSub.publish('mapClickNode', nodes[i].nodeList)
                 // PubSub.publish('searchhits', nodes[i].nodeList)
                 axios.post(global.config.url + 'rangequery', {
-                    k: node.nodeList.length,
+                    k: node.nodeCount,
                     dim: 2,
                     querymax: node.maxBox,
-                    querymin: node.minBox
+                    querymin: node.minBox,
+                    cityName: node.cityName,
                 }).then(res => {
                     console.log(res)
                     PubSub.publish('searchhits', { data: res.data.nodes })
                     this.rmMarkers()
                     this.map.flyTo(node.pivot, 9)
-                    console.log(node.nodeList)
-                    this.drawMarkers(node.nodeList)
-
+                    this.drawMarkers(res.data.subCityNodes)
                 })
             })
             markerArr.push(marker)
@@ -424,9 +423,9 @@ export default class index extends Component {
         console.log("1")
         // window.L.LeafletShades().addTo(this.map)
         // this.shades = new LeafletShades()
-        this.shades = new window.L.LeafletShades()
-        this.shades.addTo(this.map);
-        window.L.control.mousePosition().addTo(this.map);
+        // this.shades = new window.L.LeafletShades()
+        // this.shades.addTo(this.map);
+        // window.L.control.mousePosition().addTo(this.map);
 
         var that = this
         var mbrmax = []
