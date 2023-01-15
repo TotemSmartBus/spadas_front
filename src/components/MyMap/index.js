@@ -125,6 +125,9 @@ export default class index extends Component {
         this.opMode = -1
 
         this.state = { nodesVo: null, querynode: null, mode: null }
+
+        // 师姐的任务
+        this.colors = ['blue', 'red', 'brown', 'green', 'blue', 'blue', 'violet']
     }
     searchSingleDsReset() {
         if (this.trajactoryList.length != null) {
@@ -170,8 +173,8 @@ export default class index extends Component {
             this.map.removeLayer(this.shades)
         if (this.rec !== null)
             this.rec.remove()
-        // this.shades = new window.L.LeafletShades();
-        // this.shades.addTo(this.map);
+        this.shades = new window.L.LeafletShades();
+        this.shades.addTo(this.map);
     }
 
     drawOp(opMode, clickId) {
@@ -207,8 +210,18 @@ export default class index extends Component {
 
     drawDetail(clickIds, color) {
         console.log("draw detail of one dataset")
-        clickIds.forEach((item) => {
+        // 师姐的任务
+        var len = clickIds.size
+        console.log('len = ' + len)
+        // var myColor = this.colors[clickIds % len]
+        // console.log('my color = ' + myColor)
+
+        clickIds.forEach((item, index) => {
             console.log("clickId = " + item)
+
+            var myColor = this.colors[index]
+            console.log('my color = ' + myColor)
+
             axios.get(global.config.url + 'getds' + '?id=' + item)
                 .then(res => {
                     console.log(res.data);
@@ -222,13 +235,20 @@ export default class index extends Component {
 
                     var points = res.data.node.matrix
 
+                    // 师姐的任务，color -> myColor
                     points.forEach(p => {
-                        this.ClickedPointMarker.push(window.L.circleMarker(p, { radius: 2, color: 'black', weight: 0.5, opacity: 0.5, fill: true, fillColor: color, fillOpacity: 1 }).addTo(this.map))
+                        this.ClickedPointMarker.push(window.L.circleMarker(p, { radius: 1.5, color: 'black', weight: 0.5, opacity: 0.5, fill: true, fillColor: myColor, fillOpacity: 1 }).addTo(this.map))
                     })
+                    // points.forEach(p => {
+                    //     this.ClickedPointMarker.push(window.L.circleMarker(p, { radius: 2, color: 'black', weight: 0.5, opacity: 0.5, fill: true, fillColor: color, fillOpacity: 1 }).addTo(this.map))
+                    // })
 
                     // that.ClickedPointMarker.addTo(that.map)
                     // this.circleShade = window.L.circle(rootPivot, { radius: rootRadius * 100000, opacity: 0.8, fillOpacity: 0, weight: 1, color: strokeColor }).addTo(this.map)
-                    this.circleShades.push(window.L.circle(rootPivot, { radius: rootRadius * 100000, opacity: 0.8, fillOpacity: 0, weight: 1, color: color }).addTo(this.map))
+
+                    // 师姐的任务，color -> myColor
+                    this.circleShades.push(window.L.circle(rootPivot, { radius: rootRadius * 100000, opacity: 0.8, fillOpacity: 0, weight: 1, color: myColor }).addTo(this.map))
+                    // this.circleShades.push(window.L.circle(rootPivot, { radius: rootRadius * 100000, opacity: 0.8, fillOpacity: 0, weight: 1, color: color }).addTo(this.map))
                     this.map.flyTo(rootPivot, 9, { duration: 4 })
                 })
         })
@@ -281,7 +301,7 @@ export default class index extends Component {
 
         for (let node of nodes) {
             // let node = nodes[i]
-            console.log(node.cityName + " " + node.nodeList.length)
+            // console.log(node.cityName + " " + node.nodeList.length)
             let marker = window.L.marker(node.pivot)
             marker.on("mouseover", () => {
                 marker.bindPopup(node.cityName).openPopup()
@@ -416,15 +436,15 @@ export default class index extends Component {
         // [25, -80], 4
         this.map = window.L.map('map', { editable: true }).setView([27, 111], 4)
         var OpenStreetMap = window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            minZoom: 2,
+            minZoom: 1,
             maxZoom: 19,
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(this.map)
         console.log("1")
         // window.L.LeafletShades().addTo(this.map)
         // this.shades = new LeafletShades()
-        // this.shades = new window.L.LeafletShades()
-        // this.shades.addTo(this.map);
+        this.shades = new window.L.LeafletShades()
+        this.shades.addTo(this.map);
         // window.L.control.mousePosition().addTo(this.map);
 
         var that = this
@@ -465,23 +485,22 @@ export default class index extends Component {
 
         that.ciLayer = window.L.canvasMarkerLayer({}).addTo(that.map)
 
-        var options = {
-            interval: 10,
-            showOriginLabel: true,
-            redraw: 'moveend',
-            zoomIntervals: [
-                { start: 2, end: 5, interval: 10 },
-                { start: 6, end: 6, interval: 1 },
-                { start: 7, end: 7, interval: 0.5 },
-                { start: 8, end: 8, interval: 0.2 },
-                { start: 9, end: 9, interval: 0.1 },
-                { start: 10, end: 10, interval: 0.05 },
-                { start: 11, end: 15, interval: 0.02 },
-            ]
-        };
-        // window.L.AutoGraticule
-        window.L.simpleGraticule(options).addTo(that.map)
-        // window.L.autoGraticule(grid_options).addTo(that.map)
+        // 整个地图上的网格，暂时不太需要，太丑了
+        // var options = {
+        //     interval: 10,
+        //     showOriginLabel: true,
+        //     redraw: 'moveend',
+        //     zoomIntervals: [
+        //         { start: 2, end: 5, interval: 10 },
+        //         { start: 6, end: 6, interval: 1 },
+        //         { start: 7, end: 7, interval: 0.5 },
+        //         { start: 8, end: 8, interval: 0.2 },
+        //         { start: 9, end: 9, interval: 0.1 },
+        //         { start: 10, end: 10, interval: 0.05 },
+        //         { start: 11, end: 15, interval: 0.02 },
+        //     ]
+        // };
+        // window.L.simpleGraticule(options).addTo(that.map)
 
         // that.ciLayer.addLayers([tempMarker])
         // that.map.addMarker(tempMarker)
