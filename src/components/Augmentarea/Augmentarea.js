@@ -13,12 +13,8 @@ export default class Augmentarea extends Component {
 
     state = { unionId: [], unionFilename: [], uniondata: [], joinId: [], joinFilename: [], previewHeaders: [], previewBody: [] }
     list = (length) => {
-        //console.log(this.previewBody.length); 
         var res = [];
-        for (var i = 0; i < length; i++) {
-            res.push(<PreviewTable header={this.state.previewHeaders[i]} key={i} rows={this.state.previewBody[i]} />)
-        }
-        console.log(res);
+            res.push(<PreviewTable header={this.state.previewHeaders[0]} key={0} rows={this.state.previewBody} type={length === 1?'join':'union'}/>)
         return res
     }
 

@@ -11,7 +11,7 @@ global.config = {
     // url:"http://125.220.159.206:8081/",
     // url:"http://10.128.145.123:8081/",
     // 服务器环境
-    url:"http://shengwang.site/spadas/api/",
+    url: "http://sheng.whu.edu.cn/spadas/api/",
     k:10,
     error:0,
     mode:0,

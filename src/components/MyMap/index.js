@@ -280,8 +280,6 @@ export default class index extends Component {
         console.log(len)
 
         for (let node of nodes) {
-            // let node = nodes[i]
-            console.log(node.cityName + " " + node.nodeList.length)
             let marker = window.L.marker(node.pivot)
             marker.on("mouseover", () => {
                 marker.bindPopup(node.cityName).openPopup()
