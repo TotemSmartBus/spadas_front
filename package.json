@@ -4,7 +4,7 @@
   "private": true,
   "homepage": "./",
   "dependencies": {
-    "@panzhiyue/leaflet-canvasmarker": "^2.2.0",
+    "@panzhiyue/leaflet-canvasmarker": "^2.3.0",
     "@testing-library/jest-dom": "^5.16.2",
     "@testing-library/react": "^12.1.2",
     "@testing-library/user-event": "^13.5.0",
