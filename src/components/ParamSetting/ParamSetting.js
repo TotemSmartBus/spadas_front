@@ -7,8 +7,8 @@ export default class ParamSetting extends Component {
 
     state = {
         k:10,error:0,
-        modeMap:new Map([["HausDist",0],["IntersectArea",1],["GridBasedOverlap",2]]),
-        modes:["HausDist","IntersectArea","GridBasedOverlap"],
+        modeMap:new Map([["HausDist",0],["IntersectArea",1],["GridBasedOverlap",2],["EarthMoverDist",3]]),
+        modes:["HausDist","IntersectArea","GridBasedOverlap","EarthMoverDist"],
         selMode:"HausDist"
     }
 

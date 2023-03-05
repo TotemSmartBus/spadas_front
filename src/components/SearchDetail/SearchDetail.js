@@ -8,7 +8,8 @@ import '../globalconfig'
 export default class SearchDetail extends Component {
 
     handleSearchRelatedClicked = () => {
-        axios.post(global.config.url + '/dsquery', { k: global.config.k, dim: 2, querydata: this.props.matrix, mode: global.config.mode })
+        console.log(this.props)
+        axios.post(global.config.url + '/dsquery', { k: global.config.k, dim: 2, querydata: this.props.matrix, mode: global.config.mode, datasetId: this.props.id })
             .then(res => {
                 console.log(res)
                 Pubsub.publish("dsquery2Map", {
