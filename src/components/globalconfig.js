@@ -13,7 +13,9 @@ global.config = {
     // url:"http://10.128.145.123:8081/",
     // 服务器环境
     url: "http://sheng.whu.edu.cn/spadas/api/",
-    k:10,
+    // 试试将url参数抽取到命令行中作为参数
+    // url: process.env.REACT_APP_ENV,
+    k:5,
     error:0,
     mode:0,
     preRows:20,

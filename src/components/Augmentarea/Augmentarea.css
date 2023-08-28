@@ -1,5 +1,5 @@
 .area2{
-    height: 165px;
+    height: 300px;
     background-color: azure;
 }
 .area2 p{
@@ -11,13 +11,18 @@
 }
 
 .union{
-    height: 75px;
+    height: 100px;
 }
 
 .changeline{
     word-wrap:break-word;
     word-break:break-all;
 }
+
+.changeline p {
+    display: block;
+    width: 100%;
+  }
 
 .maxZ{
     z-index: 1001 !important;

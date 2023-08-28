@@ -1,0 +1,15 @@
+.headers {
+    background-color: yellow;
+}
+
+.query {
+    background-color: pink;
+}
+
+.dist {
+    background-color: gray;
+}
+
+.result {
+    background-color: cyan;
+}

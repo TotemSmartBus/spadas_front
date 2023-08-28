@@ -5,16 +5,34 @@ import ReactTooltip from 'react-tooltip'
 
 import './Augmentarea.css'
 import PreviewTable from '../PreviewTable/PreviewTable'
+import { toast } from 'react-hot-toast'
 
 export default class Augmentarea extends Component {
     // unionIds = []
     // unionFilenames = []
     // unionMatrix = []
 
-    state = { unionId: [], unionFilename: [], uniondata: [], joinId: [], joinFilename: [], previewHeaders: [], previewBody: [] }
+    state = {
+        unionQId: null, 
+        unionQFilename: null, 
+        unionDIds: [],
+        unionDFilenames: [],
+        uniondata: [], 
+        joinId: [], 
+        joinFilename: [], 
+        previewHeaders: [], 
+        previewBody: [],
+        urqQId: null, 
+        urqQFilename: null, 
+        urqDId: null, 
+        urqDFilename: null,
+        rangeMin: [],
+        rangeMax: [],
+        type: null
+    }
     list = (length) => {
         var res = [];
-            res.push(<PreviewTable header={this.state.previewHeaders[0]} key={0} rows={this.state.previewBody} type={length === 1?'join':'union'}/>)
+        res.push(<PreviewTable header={this.state.previewHeaders[0]} key={0} rows={this.state.previewBody} type={this.state.type} />)
         return res
     }
 
@@ -99,16 +117,29 @@ export default class Augmentarea extends Component {
             // }
             // console.log(this.unionFilenames)
             // this.preview()
-            var udata
-            var uid = this.state.unionId
-            var name = this.state.unionFilename
-            if (!uid.contain(obj.id)) {
-                uid.push(obj.id)
-                name.push(obj.filename)
-                udata = this.state.uniondata.concat(obj.matrix)
+
+            if (this.state.unionQId === null) {
+                this.setState({
+                    unionQId: obj.id,
+                    unionQFilename: obj.filename
+                })
+            } else {
+                this.setState(prevState => ({
+                    unionDIds: [...prevState.unionDIds, obj.id],
+                    unionDFilenames: [...prevState.unionDFilenames, obj.filename]
+                }))
             }
-            // this.preview()
-            this.setState({ unionId: uid, unionFilename: name, uniondata: udata })
+
+            // var udata
+            // var uid = this.state.unionDIds
+            // var name = this.state.unionDFilenames
+            // if (!uid.contain(obj.id)) {
+            //     uid.push(obj.id)
+            //     name.push(obj.filename)
+            //     udata = this.state.uniondata.concat(obj.matrix)
+            // }
+            // // this.preview()
+            // this.setState({ unionId: uid, unionFilename: name, uniondata: udata })
         })
 
 
@@ -124,6 +155,31 @@ export default class Augmentarea extends Component {
             this.setState({ joinId: jid, join: name })
             console.log(this.state)
         })
+
+        // 监听Union Range Query（urq）消息
+        this.urqToken = PubSub.subscribe('urq', (_, obj) => {
+            // 如果是query dataset
+            if (obj.isQ === true) {
+                this.setState({
+                    urqQId: obj.id,
+                    urqQFilename: obj.name
+                })
+            } else { // 如果不是query dataset，则是dataset D
+                this.setState({
+                    urqDId: obj.id,
+                    urqDFilename: obj.name
+                })
+            }
+        })
+
+        this.rangeToken = PubSub.subscribe('getRange', (_, obj) => {
+            if (this.state.urqDId !== null && this.state.urqDId !== null) {
+                this.setState({
+                    rangeMax: obj.rangeMax,
+                    rangeMin: obj.rangeMin
+                })
+            }
+        })
     }
 
     componentWillUnmount() {
@@ -135,12 +191,26 @@ export default class Augmentarea extends Component {
         this.unionToken = PubSub.publish("union", {
             opMode: 1
         })
-        this.preview()
+        axios.post(global.config.url + 'union', {
+            queryId: this.state.unionQId,
+            unionIds: this.state.unionDIds,
+            preRows: global.config.preRows
+        }).then(res => {
+            console.log(res);
+            this.setState({
+                previewHeaders: res.data.headers,
+                previewBody: res.data.bodies,
+                type: res.data.type
+            });
+            toast.success("Union Success.");
+        })
+
+        // this.preview()
     }
 
     handleJoin = () => {
         console.log("call handleJoin")
-        this.unionToken = PubSub.publish("join", {
+        this.joinToken = PubSub.publish("join", {
             opMode: 2
         })
         axios.get(global.config.url + 'join' + '?queryId=' + this.state.joinId[0] + '&datasetId=' + this.state.joinId[1]
@@ -153,7 +223,26 @@ export default class Augmentarea extends Component {
                 header.push(res.data.header)
                 this.setState({ previewHeaders: header, previewBody: joindata })
                 console.log(this.state)
+                toast.success('Join Success.');
             })
+    }
+
+    handleURQ = () => {
+        axios.post(global.config.url + 'unionRangeQuery', {
+            queryId: this.state.urqQId,
+            rangeMax: this.state.rangeMax,
+            rangeMin: this.state.rangeMin,
+            unionId: this.state.urqDId,
+            preRows: global.config.preRows
+        }).then(res => {
+            console.log(res);
+            this.setState({
+                previewHeaders: res.data.headers,
+                previewBody: res.data.bodies,
+                type: res.data.type
+            })
+            toast.success('Union Range Query Success.');
+        })
     }
 
     handleUnionSearch = () => {
@@ -170,7 +259,7 @@ export default class Augmentarea extends Component {
                     nodesVo: res.data.nodes,
                     mode: 1
                 })
-                PubSub.publish("searchhits", { data: res.data.nodes })
+                PubSub.publish('searchhits', { data: res.data.nodes })
             })
     }
 
@@ -221,13 +310,14 @@ export default class Augmentarea extends Component {
                 <div className="area2">
                     <div className="union changeline">
                         <p>Union:</p>
+                        <span className='ml-2'>{this.state.unionQFilename}</span>
                         {
-                            this.state.unionId.map((item, idx) => (
-                                <span key={item} className="ml-2">{this.state.unionFilename[idx]}</span>
+                            this.state.unionDIds.map((item, idx) => (
+                                <span key={item} className="ml-2">{this.state.unionDFilenames[idx]}</span>
                             ))
                         }
                     </div>
-                    <div className="join changeline">
+                    <div className="union changeline">
                         <p>Join:</p>
                         {
                             this.state.joinId.map((item, idx) => (
@@ -235,20 +325,33 @@ export default class Augmentarea extends Component {
                             ))
                         }
                     </div>
+                    <div className="union changeline">
+                        <p>Union Range Query:</p>
+                        {/* {
+                            this.state.joinId.map((item, idx) => (
+                                <span key={item} className="ml-2">{this.state.joinFilename[idx]}</span>
+                            ))
+                        } */}
+                        <span className='ml-2'>{this.state.urqQFilename}</span>
+                        <span className='ml-2'>{this.state.urqDFilename}</span>
+                    </div>
                 </div>
                 <div>
                     <p>
                         <button type='button' className='btn radiusBtn sfont' onClick={this.handleUnion}>Union</button>
                         <button type="button" className="btn radiusBtn sfont" onClick={this.handleJoin}>Join</button>
-                        <button type="button" className="btn radiusBtn sfont" onClick={this.handleUnionSearch}>UnionSearch</button>
-                    {/* </p> */}
-                    {/* <p> */}
+                        <button type='button' className='btn radiusBtn sfont' onClick={this.handleURQ}>URQ</button>
+                        {/* <button type="button" className="btn radiusBtn sfont" onClick={this.handleUnionSearch}>UnionSearch</button> */}
+                        {/* </p> */}
+                        {/* <p> */}
                         <button type="button" className="btn radiusBtn sfont fr" onClick={this.handleEmpty}>Empty</button>
                         {/* <button type="button" className="btn radiusBtn sfont fr" onClick={this.handleDownloadClicked} >Download</button> */}
+                        {/* data-for用来标识该button和控件preview（也就是下面的ReactTooltip）相关联 */}
                         <button data-tip data-for='preview' data-event='focusin' data-event-off='focusout' place="right" type="button" className="btn radiusBtn sfont fr" >Preview</button>
                     </p>
                     <ReactTooltip id='preview' type="light" place="right" offset={{ right: -170 }} clickable={true} effect="solid" className="maxZ scroll" >
-                        {this.list(this.state.previewBody.length)}
+                        {/* {this.list(this.state.previewBody.length)} */}
+                        <PreviewTable header={this.state.previewHeaders} key={0} rows={this.state.previewBody} type={this.state.type}></PreviewTable>
                     </ReactTooltip>
                 </div>
             </div>

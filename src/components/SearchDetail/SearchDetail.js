@@ -4,12 +4,13 @@ import Pubsub from 'pubsub-js'
 
 import './SearchDetail.css'
 import '../globalconfig'
+import { toast } from 'react-hot-toast'
 
 export default class SearchDetail extends Component {
 
     handleSearchRelatedClicked = () => {
         console.log(this.props)
-        axios.post(global.config.url + '/dsquery', { k: global.config.k, dim: 2, querydata: this.props.matrix, mode: global.config.mode, datasetId: this.props.id })
+        axios.post(global.config.url + 'dsquery', { k: global.config.k, dim: 2, mode: global.config.mode, datasetId: this.props.id })
             .then(res => {
                 console.log(res)
                 Pubsub.publish("dsquery2Map", {
@@ -23,13 +24,30 @@ export default class SearchDetail extends Component {
                     opMode: 0,
                     dsQueryNode: this.props.node
                 })
-                Pubsub.publish("searchhits", { data: res.data.nodes })
+                let pure_nodes = res.data.nodes.map(item => item.node)
+                // Pubsub.publish("searchhits", { data: res.data.nodes })
+                Pubsub.publish('searchhits', {
+                    data: pure_nodes,
+                    isTopk: true
+                });
+                // 发布union range query事件，让Augmentarea组件类来响应
+                Pubsub.publish('urq', {
+                    // 标识是否是query dataset，在topk search中发布的是query dataset，否则不是
+                    isQ: true,
+                    id: this.props.id,
+                    name: this.props.filename
+                });
+                toast.success("Search Related Datasets Success.");
             })
     }
 
     handleDownloadClicked = () => {
-        var url = global.config.url + "file/" + this.props.filename
+        // var url = global.config.url + "file/" + this.props.filename + "/" + this.props.id
+        var url = global.config.url + "file/" + this.props.id
+        console.log(url)
         window.open(url)
+        // var url = 'https://data-cuyahoga.opendata.arcgis.com/datasets/cuyahoga::100-year-flood-plain.zip'
+        // window.open(url)
     }
 
     // 测试
@@ -46,14 +64,14 @@ export default class SearchDetail extends Component {
                     <div className="card-header" style={{ padding: "0.5rem" }}>
                         <ul className="nav nav-tabs card-header-tabs">
                             <li className="nav-item">
-                                <a className="nav-link active" href="#">Metadata</a>
+                                <a className="nav-link active" href="#">DatasetInfo</a>
                             </li>
                             <li className="nav-item">
-                                <a className="nav-link" href="#">ColumnInfo</a>
+                                <a className="nav-link" href="#">Metadata</a>
                             </li>
-                            <li className="nav-item">
+                            {/* <li className="nav-item">
                                 <a className="nav-link" href="#">Others</a>
-                            </li>
+                            </li> */}
                         </ul>
                     </div>
 

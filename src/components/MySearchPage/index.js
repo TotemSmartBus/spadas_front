@@ -13,6 +13,7 @@ export default class index extends Component {
 	}
 
     state = { dsid: null }
+    // 为了实现点击左侧结果栏，右侧地图可视化该结果数据集，通过设置dsid属性并让地图组件来画图而实现
     handleClickedDsChange = id => {
         console.log(id)
         this.setState({ dsid: id })

@@ -1,10 +1,20 @@
-import React, { Component, useEffect } from 'react'
+import React, { Component } from 'react'
 import PubSub, { publish } from 'pubsub-js'
 import pic from './square.svg'
-
+import tri from './triangle.png'
 import axios from 'axios'
+// import { HeatmapOverlayConfiguration } from 'heatmap.js'
+// 无比关键的一次import
+// import 'heatmap.js'
+// import { HeatmapOverlay } from 'heatmap.js/plugins/leaflet-heatmap'
+// import 'leaflet-easybutton'
+// import 'leaflet'
 import './index.css'
 import '../globalconfig'
+// import chinaProvider from 'leaflet.chinatmsproviders'
+import 'leaflet.markercluster'
+// import { Toast } from 'react-bootstrap'
+import { toast, ToastContainer, Toaster } from 'react-hot-toast'
 
 // import AutoGraticule from 'leaflet-auto-graticule';
 // import LeafletShades from 'leaflet-shades/src/js/leaflet-shades'
@@ -13,10 +23,13 @@ import '../globalconfig'
 // import P from"leaflet-canvas-marker"
 import { CanvasMarkerLayer } from "@panzhiyue/leaflet-canvasmarker"
 import { globalConfig } from 'antd/lib/config-provider'
+import RefAutoComplete from 'antd/lib/auto-complete'
 // import L from "leaflet";
 // import "leaflet-shades"
 
 // import '../../../node_modules/leaflet-canvas-marker'
+
+// HeatmapOverlay = require('heatmap.js')
 
 /**
  * 
@@ -70,11 +83,26 @@ function getLeafNodes(node, nodes) {
     }
 }
 
+// const myIcon = new window.L.Icon({
+//     iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-grey.png',
+//     // shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+//     iconSize: [10, 16]
+// })
 const myIcon = new window.L.Icon({
-    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-grey.png',
+    iconUrl: tri,
     // shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
     iconSize: [10, 16]
 })
+
+var heatmapConf = {
+    "radius": 0.05,
+    "maxOpacity": .8,
+    "scaleRadius": true,
+    "useLocalExtrema": true,
+    latField: 'lat',
+    lngField: 'lng',
+    valueField: 'count'
+}
 
 export default class index extends Component {
 
@@ -106,6 +134,8 @@ export default class index extends Component {
 
         this.markerGroup = null
 
+        this.heatmapInstance = null
+
         this.nodes = []
 
         this.datasetIdMapping = {}
@@ -124,10 +154,19 @@ export default class index extends Component {
 
         this.opMode = -1
 
-        this.state = { nodesVo: null, querynode: null, mode: null }
+        this.state = { nodesVo: null, querynode: null, mode: null, isURQ: false }
 
         // 师姐的任务
-        this.colors = ['blue', 'red', 'brown', 'green', 'blue', 'blue', 'violet']
+        // this.colors = ['blue', 'red', 'orange', 'green', 'violet', 'silver']
+        this.colors = ['red', 'orange', 'green', 'violet', 'blue']
+
+        // 聚类标签集合
+        this.clusterGroup = null
+
+        this.markersLayer = window.L.layerGroup();
+
+        this.drawRecBtnPopup = null;
+        this.drawRecButton = null;
     }
     searchSingleDsReset() {
         if (this.trajactoryList.length != null) {
@@ -162,12 +201,27 @@ export default class index extends Component {
         }
     }
 
+    rmHeatmap() {
+        if (this.heatmapInstance !== null) {
+            this.map.removeLayer(this.heatmapInstance)
+            this.heatmapInstance = null
+        }
+
+    }
+
     removeShades() {
         if (this.shades !== null)
             this.map.removeLayer(this.shades)
         if (this.rec !== null)
             this.rec.remove()
     }
+
+    rmClusterGroup() {
+        if (this.clusterGroup !== null) {
+            this.map.removeLayer(this.clusterGroup)
+        }
+    }
+
     btnResetMap() {
         if (this.shades !== null)
             this.map.removeLayer(this.shades)
@@ -179,77 +233,143 @@ export default class index extends Component {
 
     drawOp(opMode, clickId) {
         console.log("opMode = " + opMode)
+        console.log(clickId)
+        let clickIds = []
 
         if (opMode === 0 && this.dsQueryNode) {
-            let clickId = this.dsQueryNode.datasetID
-            let clickIds = []
+            // dataset query情况，用a颜色画被query的dataset，用b颜色画点击的dataset
+            // let clickId = this.dsQueryNode.datasetID
+            // let clickIds = []
+            let queriedID = [this.dsQueryNode.datasetID];
             clickIds.push(clickId)
-            this.drawDetail(clickIds, 'red')
+            // console.log("xxx: " + clickIds)
+            this.drawDetail(clickIds, 'blue', 0)
+            this.drawDetail(queriedID, 'red', 0)
         } else if (opMode === 1 && this.unionNodes.length > 0) {
-            let clickIds = []
+            // union情况，所有union的dataset都画成红色
+            // let clickIds = []
             this.unionNodes.forEach((n) => {
-                let clickId = n.datasetID
-                console.log(clickId)
-                clickIds.push(clickId)
+                // let clickId = n.datasetID
+                console.log(n)
+                clickIds.push(n)
             })
-            this.drawDetail(clickIds, 'red')
+            this.drawDetail(clickIds, 'red', 1)
         } else if (opMode === 2 && this.joinNodes.length == 2) {
+            // join情况，数据集q蓝色，数据集d红色，同时展示
             let clickIds1 = []
             let clickIds2 = []
-            clickIds1.push(this.joinNodes[0].datasetID)
-            clickIds2.push(this.joinNodes[1].datasetID)
-            this.drawDetail(clickIds1, 'blue')
-            this.drawDetail(clickIds2, 'red')
-        }
-        if (clickId) {
-            let clickIds = []
+            clickIds1.push(this.joinNodes[0])
+            clickIds2.push(this.joinNodes[1])
+            this.drawDetail(clickIds1, 'blue', 2)
+            this.drawDetail(clickIds2, 'red', 2)
+        } else {
+            // 常规的点击操作，点击的数据集蓝色显示
+            // let clickIds = []
             clickIds.push(clickId)
-            this.drawDetail(clickIds, 'blue')
+            console.log(clickIds)
+            this.drawDetail(clickIds, 'blue', -1)
         }
+        // if (clickId !== null) {
+        // let clickIds = []
+        // clickIds.push(clickId)
+        // this.drawDetail(clickIds, 'blue', -1)
+        // }
     }
 
-    drawDetail(clickIds, color) {
+    drawDetail(clickIds, color, opMode) {
         console.log("draw detail of one dataset")
         // 师姐的任务
-        var len = clickIds.size
+        console.log(clickIds)
+        var len = clickIds.length
         console.log('len = ' + len)
-        // var myColor = this.colors[clickIds % len]
-        // console.log('my color = ' + myColor)
+        // var i = 
+        var myColor = this.colors[clickIds % len]
+        console.log('my color = ' + myColor)
 
         clickIds.forEach((item, index) => {
             console.log("clickId = " + item)
 
-            var myColor = this.colors[index]
+            var myColor = this.colors[index % len]
             console.log('my color = ' + myColor)
 
             axios.get(global.config.url + 'getds' + '?id=' + item)
                 .then(res => {
                     console.log(res.data);
+                    var resData = res.data.node.dataSamp
                     var root = res.data.node.node
                     var rootPivot = root.pivot
                     var rootRadius = root.radius
+                    var rootPointCount = root.totalCoveredPoints
+                    var rootPoints = res.data.node.matrix
                     // var rootType = root.type
                     // var nodes = []
                     // getLeafNodes(root, nodes)
                     // console.log(nodes)
 
-                    var points = res.data.node.matrix
+                    var sampData = new Array()
+                    resData.forEach((v, i) => {
+                        let item = new Array()
+                        item['lat'] = v[0]
+                        item['lng'] = v[1]
+                        item['count'] = v[2]
+                        sampData[i] = item
+                    })
+                    var standardData = {
+                        max: 8,
+                        data: sampData
+                    }
+                    console.log(standardData)
+                    console.log(sampData);
+
+                    // var points = res.data.node.matrix
 
                     // 师姐的任务，color -> myColor
-                    points.forEach(p => {
-                        this.ClickedPointMarker.push(window.L.circleMarker(p, { radius: 1.5, color: 'black', weight: 0.5, opacity: 0.5, fill: true, fillColor: myColor, fillOpacity: 1 }).addTo(this.map))
-                    })
-                    // points.forEach(p => {
-                    //     this.ClickedPointMarker.push(window.L.circleMarker(p, { radius: 2, color: 'black', weight: 0.5, opacity: 0.5, fill: true, fillColor: color, fillOpacity: 1 }).addTo(this.map))
+                    // resData.forEach(p => {
+                    //     this.ClickedPointMarker.push(window.L.circleMarker(p.slice(0, 2), { radius: 1.5, color: 'black', weight: 0.5, opacity: 0.5, fill: true, fillColor: 'blue', fillOpacity: 1 }).addTo(this.map))
+                    // })
+
+                    // var heatmapLayer = HeatmapOverlay(heatmapConf)
+                    // 载入史册的一次window.
+
+                    console.log(rootPoints)
+
+                    // if (opMode < 0) {
+                    //     this.rmHeatmap()
+                    // }
+                    this.rmHeatmap()
+                    this.rmClusterGroup()
+
+                    if (rootPoints === null) { // 点数目太大，显示不了，故使用热力图展示
+                        // 不用热力图了，直接显示采样点看看情况
+                        // this.heatmapInstance = new window.HeatmapOverlay(heatmapConf)
+                        // this.heatmapInstance.setData(standardData)
+                        // // this.heatmapInstance.addTo(this.map)
+                        // this.map.addLayer(this.heatmapInstance)
+
+                        // 直接显示采样点
+                        sampData.forEach(p => {
+                            this.ClickedPointMarker.push(window.L.circleMarker([p['lat'], p['lng']], { radius: 2, color: 'black', weight: 0.5, opacity: 0.5, fill: true, fillColor: color, fillOpacity: 1 }).addTo(this.map))
+                        })
+                    } else {
+                        rootPoints.forEach(p => {
+                            this.ClickedPointMarker.push(window.L.circleMarker(p, { radius: 2, color: 'black', weight: 0.5, opacity: 0.5, fill: true, fillColor: color, fillOpacity: 1 }).addTo(this.map))
+                        })
+                        // rootPoints.forEach(p => {
+                        // this.ClickedPointMarker.push(window.L.marker(p, {icon: myIcon}).addTo(this.map))
+                        // })
+                    }
+
+                    // this.map.eachLayer(function (layer) {
+                    //     console.log(layer)
                     // })
 
                     // that.ClickedPointMarker.addTo(that.map)
                     // this.circleShade = window.L.circle(rootPivot, { radius: rootRadius * 100000, opacity: 0.8, fillOpacity: 0, weight: 1, color: strokeColor }).addTo(this.map)
 
                     // 师姐的任务，color -> myColor
-                    this.circleShades.push(window.L.circle(rootPivot, { radius: rootRadius * 100000, opacity: 0.8, fillOpacity: 0, weight: 1, color: myColor }).addTo(this.map))
                     // this.circleShades.push(window.L.circle(rootPivot, { radius: rootRadius * 100000, opacity: 0.8, fillOpacity: 0, weight: 1, color: color }).addTo(this.map))
-                    this.map.flyTo(rootPivot, 9, { duration: 4 })
+                    // this.circleShades.push(window.L.circle(rootPivot, { radius: rootRadius * 100000, opacity: 0.8, fillOpacity: 0, weight: 1, color: color }).addTo(this.map))
+                    // this.map.flyTo(rootPivot, 9, { duration: 4 })
                 })
         })
     }
@@ -258,15 +378,16 @@ export default class index extends Component {
         console.log(nodes)
 
         var markerArr = []
-        window.$.each(nodes, function (index, val) {
+        window.$.each(nodes, function (index, valNode) {
             // console.log(val)
             // 先纬度后经度
             //i+=1
             // console.log(val)
             // console.log(index)
             // let marker = window.L.marker(new window.L.LatLng(val.pivot[0], val.pivot[1]), { id: val.datasetID }).bindPopup(res.data.filenames[val.datasetID]).openPopup()
+            let val = valNode.node
             let marker = window.L.circleMarker([val.pivot[0], val.pivot[1]], {
-                radius: 5,
+                radius: 3,
                 id: val.datasetID,
                 color: 'black',
                 weight: 0.5,
@@ -278,10 +399,12 @@ export default class index extends Component {
             // var marker = window.L.marker(new window.L.LatLng(val.pivot[0], val.pivot[1]), { id: val.datasetID, icon: myIcon, title: 'hello' }).bindPopup("goodbye").openPopup()
             marker.on("click", function (e) {
                 console.log("call getds url")
+                console.log(e.target.options.id)
+                // 改的就是你
                 axios.get(global.config.url + 'getds' + '?id=' + e.target.options.id)
                     .then(res2 => {
-                        console.log("xxxxxxx!")
-                        console.log(res2.data.node);
+                        // console.log("xxxxxxx!")
+                        // console.log(res2.data.node);
                         PubSub.publish('mapClickNode', res2.data.node)
                     })
             })
@@ -292,6 +415,8 @@ export default class index extends Component {
         this.map.addLayer(this.markerGroup)
     }
 
+    // 画城市节点，对于不存在城市概念的数据集集需要进行改变
+    // 目前的思路是使用回聚类标记
     drawCityNodes(nodes) {
         console.log(nodes)
         console.log(Object.prototype.toString.call(nodes[0]))
@@ -308,6 +433,9 @@ export default class index extends Component {
                 // console.log(nodes[i])
                 // PubSub.publish('mapClickNode', nodes[i].nodeList)
                 // PubSub.publish('searchhits', nodes[i].nodeList)
+                // 都有node了直接获取citynode下面的node就好了啊还在这rangequery干嘛
+
+                // rangequery传入
                 axios.post(global.config.url + 'rangequery', {
                     k: node.nodeCount,
                     dim: 2,
@@ -316,10 +444,15 @@ export default class index extends Component {
                     cityName: node.cityName,
                 }).then(res => {
                     console.log(res)
-                    PubSub.publish('searchhits', { data: res.data.nodes })
+                    PubSub.publish('searchhits', {
+                        data: res.data.nodes,
+                        isTopk: false
+                    });
                     this.rmMarkers()
                     this.map.flyTo(node.pivot, 9)
-                    this.drawMarkers(res.data.subCityNodes)
+                    // this.drawMarkers(res.data.subCityNodes)
+                    // 虽然是nodes属性，但其中不包含index node，只包含文件名和id
+                    this.drawMarkers(res.data.nodes)
                 })
             })
             markerArr.push(marker)
@@ -327,6 +460,113 @@ export default class index extends Component {
         this.markerGroup = window.L.layerGroup(markerArr)
         this.map.addLayer(this.markerGroup)
         console.log(this.map)
+    }
+
+    // 画每个文件的根节点（rootToDataset = -1），并画聚类标记，其中文件节点标记和聚类标记要不相同
+    // nodes：全部的文件节点
+    drawClusters(nodes) {
+        // 确认一下参数信息
+        console.log("length of nodes is: " + this.nodes.length)
+        console.log("first node is: " + nodes[100])
+
+        // 初始化clusterGroup
+        this.clusterGroup = window.L.markerClusterGroup({
+            maxClusterRadius: 30,
+            disableClusteringAtZoom: 14
+        })
+
+        // 先添加全部文件节点到地图上
+        for (let node of nodes) {
+            // console.log(node.datasetID)
+            // if (node.pivot[0] == null) {
+            //     console.log("!!!" + node.pivot);
+            // }
+            // console.log(node.datasetID + " : " + node.pivot);
+            var fileMarker = window.L.marker(node.pivot, { name: node.fileName, id: node.datasetID }).addTo(this.markersLayer);
+            fileMarker.on("click", function (e) {
+                var markerID = e.target.options.id
+                let clickNodes = []
+                clickNodes.push(nodes[parseInt(markerID)])
+                PubSub.publish("searchhits", { data: clickNodes })
+            })
+            fileMarker.bindPopup(`${node.fileName}`)
+            this.clusterGroup.addLayers(fileMarker)
+            // let fileMarker = window.L.circleMarker([node.pivot[0], node.pivot[1]], {
+            //     radius: 3,
+            //     id: node.datasetID,
+            //     color: 'black',
+            //     weight: 0.5,
+            //     opacity: 0.5,
+            //     fillColor: 'green',
+            //     fillOpacity: 1
+            // })
+            // let fileMarker = window.L.marker(node.pivot, {id: node.datasetID}).addTo(this.map).bindPopup("1")
+            // let fileMarker = window.L.marker(node.pivot, { id: node.datasetID })
+            // let fileMarker = window.L.marker(node.pivot)
+            // fileMarker.setOptions({ id: node.datasetID})
+            // fileMarker.on("mouseover", () => {
+            //     console.log(fileMarker.options.id)
+            //     let idd = fileMarker.options.id
+            //     fileMarker.bindPopup(idd).openPopup()
+            // })
+            // fileMarker.on('mouseover', function(e) {
+            //     console.log(fileMarker.options.id)
+            //     this.openPopup()
+            // })
+            // fileMarker.addTo(this.clusterGroup)
+        }
+
+        this.clusterGroup.on('mouseover', function (event) {
+            var marker = event.layer
+            var markerName = marker.options.name
+            marker.bindPopup(`${markerName}`).openPopup()
+        }).addTo(this.map)
+
+        this.clusterGroup.on("clusterclick", (a) => {
+            console.log(a);
+            var markers = a.layer.getAllChildMarkers()
+            console.log(markers);
+            let clickNodes = []
+            for (var i = 0; i < markers.length; i++) {
+                console.log(this.nodes[markers[i].options.id])
+                clickNodes.push(this.nodes[markers[i].options.id])
+            }
+            console.log(clickNodes)
+            PubSub.publish("searchhits", { data: clickNodes })
+        })
+
+        // this.clusterGroup.eachLayer((marker) => {
+        //     console.log(marker.options.id)
+        //     // marker.bindPopup(marker.options.id)
+        // })
+
+        // 点击聚类标记，会一层层拆开聚类
+        // 增加一些信息的显示
+        // this.clusterGroup.on("clusterclick", (a) => {
+        //     let childCount = a.layer.getChildCount()
+        //     console.log("cluster " + a.layer.getAllChildMarkers() + " includes " + childCount + " markers")
+        // })
+
+        // 点击聚类标记会触发左侧结果栏显示聚类下的全部文件节点
+    }
+
+    // 用于和论文中的例子匹配而增加的默认样例flu-shot
+    // 要求初始界面地图上聚焦该数据集，左侧结果栏显示该数据集，左侧详情栏显示该数据集详情
+    loadExample() {
+        var exampleLeafletId = 0;
+        var layers = this.markersLayer.getLayers();
+        // 找到markersLayer中该数据集对应的图层，记录其_leaflet_id属性（只有通过该属性才能获取到该图层对象）
+        layers.forEach((layer) => {
+            if (layer.options.name == "phl--flu-shot.csv") {
+                exampleLeafletId = layer._leaflet_id;
+                console.log(exampleLeafletId);
+            }
+        })
+        console.log(this.markersLayer.getLayer(exampleLeafletId));
+        // 触发该数据集图层对象的点击事件
+        var exampleMarker = this.markersLayer.getLayer(exampleLeafletId);
+        exampleMarker.fire('click');
+        this.map.setView([40, -75], 4);
     }
 
     refreshMap() {
@@ -339,6 +579,8 @@ export default class index extends Component {
         this.rmMarkers()
         // circleShade, clickPointMarker
         this.searchSingleDsReset()
+        this.rmHeatmap()
+        this.rmClusterGroup()
 
         this.dsQueryNode = null
         this.isDsQuery = true
@@ -347,9 +589,33 @@ export default class index extends Component {
         this.opMode = -1
 
         // this.drawMarkers()
-        this.drawCityNodes(this.nodes)
-        this.map.setView([27, 111], 4)
+        // this.drawCityNodes(this.nodes)
+        this.drawClusters(this.nodes)
+        this.map.setView([38, -77], 4)
+        this.setState({ isURQ: false });
+        this.map.getContainer().classList.remove('crosshair-cursor');
     }
+
+    // notify(content, type) {
+    //     console.log(content);
+    //     if (type === "origin") {
+    //         toast(content, {
+    //             position: "top-center",
+    //             duration: 1000
+    //         });
+    //     } else if (type === "success") {
+    //         toast.success(content, {
+    //             position: "top-center",
+    //             duration: 1000
+    //         });
+    //     } else if (type === "error") {
+    //         toast.error(content, {
+    //             position: "top-center",
+    //             duration: 2000
+    //         })
+    //     }
+
+    // }
 
 
     componentWillUnmount() {
@@ -370,6 +636,15 @@ export default class index extends Component {
             this.props.onRef(this)
         }
 
+        // if (this.clusterGroup != null) {
+        //     this.clusterGroup.eachLayer((marker) => {
+        //         marker.on("mouseover", () => {
+        //             marker.openPopup()
+        //         })
+        //     })
+        // }
+
+
         this.token1 = PubSub.subscribe('dsquery2Map', (_, stateObj) => {
             // console.log(stateObj)
             this.setState(stateObj)
@@ -380,43 +655,51 @@ export default class index extends Component {
             console.log(this.dsQueryNode)
         })
 
+        // 添加一个union数据集
         this.unionSingleToken = PubSub.subscribe('unionSingle', (_, obj) => {
             // console.log("union obj = " + obj)
             // this.opMode = obj.opMode
             // console.log(obj.node)
+            // 根本没传到node
+            // console.log(obj.node.datasetID)
             let isValidNode = true
             for (let i = 0; i < this.unionNodes.length; i++) {
-                if (this.unionNodes[i].datasetID === obj.node.datasetID) {
+                if (this.unionNodes[i] === obj.id) {
                     isValidNode = false
                     break
                 }
             }
+            console.log(isValidNode)
             if (isValidNode === true) {
-                this.unionNodes.push(obj.node)
+                console.log(obj.node)
+                this.unionNodes.push(obj.id)
             }
             console.log(this.unionNodes)
         })
 
+        // 添加一个join数据集
         this.joinSingleToken = PubSub.subscribe('joinSingle', (_, obj) => {
             let isValidNode = true
             for (let i = 0; i < this.joinNodes.length; i++) {
-                if (this.joinNodes[i].datasetID === obj.node.datasetID) {
+                if (this.joinNodes[i] === obj.id) {
                     isValidNode = false
                     break
                 }
             }
             if (isValidNode === true) {
-                this.joinNodes.push(obj.node)
+                this.joinNodes.push(obj.id)
             }
             console.log(this.joinNodes)
         })
 
+        // 多个数据集进行union
         this.unionToken = PubSub.subscribe('union', (_, obj) => {
             this.opMode = obj.opMode
             console.log(this.opMode)
             this.drawOp(this.opMode)
         })
 
+        // 多个数据集进行join
         this.joinToken = PubSub.subscribe("join", (_, obj) => {
             this.opMode = obj.opMode
             console.log(this.opMode)
@@ -428,21 +711,52 @@ export default class index extends Component {
             this.refreshMap()
         })
 
+        this.isURQToken = PubSub.subscribe('isURQ', (_, obj) => {
+            this.setState({
+                isURQ: obj.isURQ
+            })
+        })
+
         //设置地图和瓦片图层
         // 40,-80
         // 34, 108
         // [25, -80], 4
-        this.map = window.L.map('map', { editable: true }).setView([27, 111], 4)
-        var OpenStreetMap = window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            minZoom: 1,
-            maxZoom: 19,
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        }).addTo(this.map)
-        console.log("1")
+        // this.map = window.L.map('map', { editable: true }).setView([27, 111], 4)
+        this.map = window.L.map('map', { editable: true }).setView([38, -77], 4)
+        // var OpenStreetMap = window.L.tileLayer('https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png', {
+        //     minZoom: 1,
+        //     maxZoom: 19,
+        //     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        // }).addTo(this.map)
+        // 中字，深度够
+        // this.map.addLayer(window.L.tileLayer('http://www.google.cn/maps/vt?lyrs=m@189&gl=cn&x={x}&y={y}&z={z}', {
+        //     // subdomains: ['1', '2', '3', '4'],
+        //     minZoom: 1,
+        //     maxZoom: 19
+        //   }));
+        // this.map.addLayer(window.L.tileLayer.chinaProvider('GaoDe.Normal.Map', {maxZoom: 19, minZoom: 1}))
+        // 使用高德在线地图源
+        // this.map.addLayer(window.L.tileLayer('http://map.geoq.cn/ArcGIS/rest/services/ChinaOnlineCommunity/MapServer/tile/{z}/{y}/{x}', {maxZoom: 12, minZoom: 1}))
+        // 使用默认osm地图源，需要翻墙加载
+        this.map.addLayer(window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, minZoom: 1 }))
+        // console.log("1")
         // window.L.LeafletShades().addTo(this.map)
         // this.shades = new LeafletShades()
-        this.shades = new window.L.LeafletShades()
-        this.shades.addTo(this.map);
+        // 测试添加geoserver图层
+        // window.L.tileLayer.wms("http://49.232.124.243:8080/geoserver/PatentMap/wms", {
+        //     layers: "patent_point",
+        //     format: "image/png",
+        //     transparent: true
+        // }).addTo(this.map);
+        // window.L.tileLayer.wms("http://49.232.124.243:8080/geoserver/spadas/wms", {
+        //     layers: "baidu",
+        //     format: "image/png",
+        //     transparent: true
+        // }).addTo(this.map);
+        this.shades = new window.L.LeafletShades().addTo(this.map);
+        console.log(this.shades);
+        // this.shades.addTo(this.map);
+
         // window.L.control.mousePosition().addTo(this.map);
 
         var that = this
@@ -453,35 +767,153 @@ export default class index extends Component {
 
         // 添加按钮控件
         // 画框按钮
-        window.L.easyButton('<span class="star1">&odot;</span>', function () {
-            //点击开始绘图
+        // 本来使用的是html实体编码，现在直接使用的是“□”符号
+        this.drawRecButton = window.L.easyButton('<span class="star1">□</span>', function () {
+            // 点击开始绘图
+            // that.notify("Draw Rectangle.");
+
             that.btnResetMap()
+            const mapContainer = that.map.getContainer();
+            mapContainer.classList.remove('crosshair-cursor');
+            // that.map.getContainer().style.cursor = '';
             if (that.isRangeQueryButtonClicked == false) {
+                // that.map.getContainer().style.cursor = 'crosshair';
+                // that.notify("Please draw a rectangle.", "origin");
+                toast("Please draw a rectangle.");
+                mapContainer.classList.add('crosshair-cursor');
+                console.log(that.map.getContainer().style.cursor);
+                // console.log(that.map.editTools.startRectangle());
                 that.rec = that.map.editTools.startRectangle()
+                console.log(that.rec);
+                // that.rec = that.map.
+            } else {
+                toast.success("Drawing Cancelled.");
             }
             that.isRangeQueryButtonClicked = !that.isRangeQueryButtonClicked
-        }).addTo(this.map)
+            // mapContainer.classList.remove('crosshair-cursor');
+
+            // // 重写一下逻辑
+            // // 改变鼠标形态为十字光标
+            // that.map.getContainer().style.cursor = 'crosshair';
+
+
+            // // 监听鼠标按下事件
+            // that.map.on('mousedown', (e) => {
+            //     this.
+            // })
+        }).addTo(this.map);
+
+        // this.shades.on('editable:drawing:commit', function(e) {
+        //     console.log(this.shades._bounds);
+        //     console.log(e.bounds);
+        // })
+
+        // this.shades.on('click', function() {
+        //     console.log('hello');
+        // })
+
+        // 试图给easy button增加鼠标悬浮时候的浮窗，来提高用户体验，但失败了，太他妈复杂了
+
+        // var buttonElement = this.drawRecButton.getContainer();
+        // this.drawRecBtnPopup = window.L.popup();
+
+        // buttonElement.addEventListener('mouseover', (e) => {
+        //     console.log(e);
+        //     console.log(buttonElement.getPosition());
+        //     if (this.isRangeQueryButtonClicked == false) {
+        //         this.drawRecBtnPopup.setContent('Create Range').setLatLng(e.getPosition()).openOn(this.map);
+        //     } else {
+        //         this.drawRecBtnPopup.setContent('Remove Range').setLatLng(this.drawRecButton.getPosition()).openOn(this.map);
+        //     }
+        // })
+
+        // buttonElement.addEventListener('mouseout', () => {
+        //     this.map.closePopup(this.drawRecBtnPopup);
+        // })
+
+        // this.drawRecButton.on('mouseover', () => {
+
+        // })
+
+        // this.drawRecButton.on('mouseout', () => {
+
+        // })
 
         // 搜索按钮
-        window.L.easyButton('<span class="star2">&telrec;</span>', function () {
+        // 负责urq和rq在画框以后的搜索步骤
+        var searchBtn = window.L.easyButton('<span class="star2">&telrec;</span>', handleSearch).addTo(this.map);
+        console.log(searchBtn);
+
+        function handleSearch() {
+            const { isURQ } = that.state;
             if (that.rec === null) {
                 mbrmax = [90, 180]
                 mbrmin = [-90, -180]
             } else {
                 mbrmax = [that.rec._bounds._northEast.lat, that.rec._bounds._northEast.lng]
                 mbrmin = [that.rec._bounds._southWest.lat, that.rec._bounds._southWest.lng]
+                console.log(that.shades);
             }
-            axios.post(global.config.url + 'rangequery', { k: global.config.k, dim: 2, querymax: mbrmax, querymin: mbrmin })
-                .then(res => {
-                    console.log(mbrmax)
-                    console.log(mbrmin)
-                    console.log(res)
-                    // that.removeShades()
-                    PubSub.publish('searchhits', { data: res.data.nodes })
-                })
-        }).addTo(this.map);
+            // 范围查询调用的api
+            console.log("isURQ = " + isURQ);
+            if (isURQ === false) {
+                axios.post(global.config.url + 'rangequery', { k: global.config.k, dim: 2, querymax: mbrmax, querymin: mbrmin, mode: global.config.mode })
+                    .then(res => {
+                        console.log(mbrmax)
+                        console.log(mbrmin)
+                        console.log(res)
+                        // that.removeShades()
+                        let pure_nodes = res.data.nodes.map(item => item.node)
+                        PubSub.publish('searchhits', {
+                            data: pure_nodes,
+                            isTopk: false
+                        });
+                    });
 
-        that.ciLayer = window.L.canvasMarkerLayer({}).addTo(that.map)
+            } else {
+                // union range query调用的api，对于指定的D，找到其落在range中的所有点
+                PubSub.publish('getRange', {
+                    rangeMax: mbrmax,
+                    rangeMin: mbrmin
+                })
+                toast('Switch to Augmentation Tab.');
+            }
+        }
+
+        // searchBtn.on('click', function() {
+        //     if (that.rec === null) {
+        //         mbrmax = [90, 180]
+        //         mbrmin = [-90, -180]
+        //     } else {
+        //         mbrmax = [that.rec._bounds._northEast.lat, that.rec._bounds._northEast.lng]
+        //         mbrmin = [that.rec._bounds._southWest.lat, that.rec._bounds._southWest.lng]
+        //         console.log(that.shades);
+        //     }
+        //     // 范围查询调用的api
+        //     console.log(this.isURQ);
+        //     if (this.isURQ === false) {
+        //         axios.post(global.config.url + 'rangequery', { k: global.config.k, dim: 2, querymax: mbrmax, querymin: mbrmin })
+        //         .then(res => {
+        //             console.log(mbrmax)
+        //             console.log(mbrmin)
+        //             console.log(res)
+        //             // that.removeShades()
+        //             let pure_nodes = res.data.nodes.map(item => item.node)
+        //             PubSub.publish('searchhits', {
+        //                 data: pure_nodes,
+        //                 isTopk: false
+        //             });
+        //         });
+        //     } else {
+        //         // union range query调用的api，对于指定的D，找到其落在range中的所有点
+        //         PubSub.publish('getRange', {
+        //             rangeMax : mbrmax,
+        //             rangeMin: mbrmin
+        //         })
+        //     }
+        // })
+
+        // that.ciLayer = window.L.canvasMarkerLayer({}).addTo(that.map)
 
         // 整个地图上的网格，暂时不太需要，太丑了
         // var options = {
@@ -517,25 +949,44 @@ export default class index extends Component {
         //     })
 
         console.log("call loaddata")
-        let myDate = new Date()
-        console.log(myDate.getHours() + ":" + myDate.getMinutes() + ":" + myDate.getSeconds() + "." + myDate.getMilliseconds());
+        // let myDate = new Date()
+        // console.log(myDate.getHours() + ":" + myDate.getMinutes() + ":" + myDate.getSeconds() + "." + myDate.getMilliseconds());
         // console.log(new Date().getTime())
-        console.log(this.nodes)
+        // console.log(this.nodes)
 
         // 分多次调用/load请求
-        for (var i = 0; i < 6; i++) {
-            console.log("load data " + i)
-            axios.get(global.config.url + 'load' + '?id=' + i)
-                .then(res => {
-                    // console.log(res.data.cityNodeList)
-                    for (let x of res.data.cityNodeList) {
-                        // console.log(x)
-                        this.nodes.push(x)
-                    }
-                    this.refreshMap()
-                    // this.nodes.push(res.data.cityNodeList)
-                })
-        }
+        // for (var i = 0; i < 6; i++) {
+        //     console.log("load data " + i)
+        //     axios.get(global.config.url + 'load' + '?id=' + i)
+        //         .then(res => {
+        //             // console.log(res.data.cityNodeList)
+        //             for (let x of res.data.cityNodeList) {
+        //                 // console.log(x)
+        //                 this.nodes.push(x)
+        //             }
+        //             this.refreshMap()
+        //             // this.nodes.push(res.data.cityNodeList)
+        //         })
+        // }
+
+        // i = 1
+        // 只传city node
+        axios.get(global.config.url + 'load' + '?id=1')
+            .then(res => {
+                // console.log(res.data.cityNodeList)
+                // for (let x of res.data.cityNodeList) {
+                //     console.log(x)
+                //     this.nodes.push(x)
+                // }
+                for (let x of res.data) {
+                    // console.log(x)
+                    this.nodes.push(x)
+                }
+
+                this.refreshMap();
+                this.loadExample();
+                // this.nodes.push(res.data.cityNodeList)
+            })
 
         // axios.interceptors.response.use(response => {
         //     console.log("emmmm")
@@ -550,7 +1001,7 @@ export default class index extends Component {
         //     console.log(this.nodes)
         //     this.refreshMap()
         // })
-        
+
 
         // axios.get(global.config.url + 'load')
         //     .then(res => {
@@ -756,7 +1207,6 @@ export default class index extends Component {
         return (
             // <div id="map" style={{ height: "870px" }}></div>
             <div id="map" style={{ height: "800px" }}></div>
-
         )
     }
 }

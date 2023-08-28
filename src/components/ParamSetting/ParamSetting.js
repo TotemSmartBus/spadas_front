@@ -6,9 +6,11 @@ import '../globalconfig'
 export default class ParamSetting extends Component {
 
     state = {
-        k:10,error:0,
-        modeMap:new Map([["HausDist",0],["IntersectArea",1],["GridBasedOverlap",2],["EarthMoverDist",3]]),
-        modes:["HausDist","IntersectArea","GridBasedOverlap","EarthMoverDist"],
+        k:5,error:0,
+        // modeMap:new Map([["HausDist",0],["IntersectArea",1],["GridBasedOverlap",2],["EarthMoverDist",3]]),
+        // modes:["HausDist","IntersectArea","GridBasedOverlap","EarthMoverDist"],
+        modeMap:new Map([["HausDist",0],["IntersectArea",1],["GridBasedOverlap",2]]),
+        modes:["HausDist","IntersectArea","GridBasedOverlap"],
         selMode:"HausDist"
     }
 
@@ -67,7 +69,7 @@ export default class ParamSetting extends Component {
                 {/* number param setting */}
                 <div className="form-row">
                     <div className="col-7">
-                        <input type="number" min="0" className="form-control" placeholder="TopK Default 10" onChange={this.TopkChanged}/>
+                        <input type="number" min="0" className="form-control" placeholder="TopK Default 5" onChange={this.TopkChanged}/>
                     </div>
                     <div className="col">
                         <input type="number" min="0" className="form-control" placeholder="Err Default 0" onChange={this.ErrorChanged}/>
