@@ -6,7 +6,8 @@ import KeywordsSearch from '../KeywordsSearch/KeywordsSearch';
 import ParamSetting from '../ParamSetting/ParamSetting'
 import SearchDetail from '../SearchDetail/SearchDetail'
 import SeachHits from '../SearchHits/SeachHits';
-import SearchHits from '../SearchHits/SeachHits'
+import SearchHits from '../SearchHits/SeachHits';
+import Option from '../Option/Option';
 
 
 
@@ -23,6 +24,10 @@ export default class LeftPart extends Component {
     render() {
         return (
             <div>
+                <p>
+                    <Option />
+                </p>
+
                 <p>
                     <Tabs defaultActiveKey={1} animation={false} id="noanim-tab-example">
                         {/* <Tab eventKey={1} title="Search Tab">   */}
