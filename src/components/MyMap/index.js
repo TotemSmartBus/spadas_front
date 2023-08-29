@@ -11,7 +11,7 @@ import axios from 'axios'
 // import 'leaflet'
 import './index.css'
 import '../globalconfig'
-// import chinaProvider from 'leaflet.chinatmsproviders'
+import chinaProvider from 'leaflet.chinatmsproviders'
 import 'leaflet.markercluster'
 // import { Toast } from 'react-bootstrap'
 import { toast, ToastContainer, Toaster } from 'react-hot-toast'
@@ -154,7 +154,7 @@ export default class index extends Component {
 
         this.opMode = -1
 
-        this.state = { nodesVo: null, querynode: null, mode: null, isURQ: false }
+        this.state = { nodesVo: null, querynode: null, mode: null }
 
         // 师姐的任务
         // this.colors = ['blue', 'red', 'orange', 'green', 'violet', 'silver']
@@ -167,6 +167,7 @@ export default class index extends Component {
 
         this.drawRecBtnPopup = null;
         this.drawRecButton = null;
+        this.isURQ = false;
     }
     searchSingleDsReset() {
         if (this.trajactoryList.length != null) {
@@ -592,7 +593,8 @@ export default class index extends Component {
         // this.drawCityNodes(this.nodes)
         this.drawClusters(this.nodes)
         this.map.setView([38, -77], 4)
-        this.setState({ isURQ: false });
+        // this.setState({ isURQ: false });
+        this.loadExample();
         this.map.getContainer().classList.remove('crosshair-cursor');
     }
 
@@ -630,6 +632,7 @@ export default class index extends Component {
 
     componentDidMount() {
         console.log("call componentDidMount")
+        console.log(this.isURQ);
 
         if (this.props.onRef !== undefined) {
             // 在子组件中调用父组件的方法，并把当前的实例传进去
@@ -712,9 +715,14 @@ export default class index extends Component {
         })
 
         this.isURQToken = PubSub.subscribe('isURQ', (_, obj) => {
-            this.setState({
-                isURQ: obj.isURQ
-            })
+            // this.setState({
+            //     isURQ: obj.isURQ
+            // })
+            that.isURQ = obj.isURQ;
+        })
+
+        this.refreshToken = PubSub.subscribe('refresh', (_, obj) => {
+            this.refreshMap();
         })
 
         //设置地图和瓦片图层
@@ -734,11 +742,15 @@ export default class index extends Component {
         //     minZoom: 1,
         //     maxZoom: 19
         //   }));
-        // this.map.addLayer(window.L.tileLayer.chinaProvider('GaoDe.Normal.Map', {maxZoom: 19, minZoom: 1}))
-        // 使用高德在线地图源
-        // this.map.addLayer(window.L.tileLayer('http://map.geoq.cn/ArcGIS/rest/services/ChinaOnlineCommunity/MapServer/tile/{z}/{y}/{x}', {maxZoom: 12, minZoom: 1}))
+
+        // 高德源，优势：放大倍数足够，不需要vpn；劣势：国外地图标注极少
+        this.map.addLayer(window.L.tileLayer.chinaProvider('GaoDe.Normal.Map', {maxZoom: 19, minZoom: 1}))
+
+        // 高德源，优势：不需要vpn；劣势：国外地图标注较少，放大倍数不够
+        // this.map.addLayer(window.L.tileLayer('http://map.geoq.cn/ArcGIS/rest/services/ChinaOnlineCommunity/MapServer/tile/{z}/{y}/{x}', {maxZoom: 14, minZoom: 1}))
+        
         // 使用默认osm地图源，需要翻墙加载
-        this.map.addLayer(window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, minZoom: 1 }))
+        // this.map.addLayer(window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, minZoom: 1 }))
         // console.log("1")
         // window.L.LeafletShades().addTo(this.map)
         // this.shades = new LeafletShades()
@@ -845,7 +857,6 @@ export default class index extends Component {
         console.log(searchBtn);
 
         function handleSearch() {
-            const { isURQ } = that.state;
             if (that.rec === null) {
                 mbrmax = [90, 180]
                 mbrmin = [-90, -180]
@@ -855,9 +866,9 @@ export default class index extends Component {
                 console.log(that.shades);
             }
             // 范围查询调用的api
-            console.log("isURQ = " + isURQ);
-            if (isURQ === false) {
-                axios.post(global.config.url + 'rangequery', { k: global.config.k, dim: 2, querymax: mbrmax, querymin: mbrmin, mode: global.config.mode })
+            console.log("isURQ = " + that.isURQ);
+            if (that.isURQ === false) {
+                axios.post(global.config.url + 'rangequery', { k: global.config.k, dim: 2, querymax: mbrmax, querymin: mbrmin, mode: global.config.rangeMode })
                     .then(res => {
                         console.log(mbrmax)
                         console.log(mbrmin)
@@ -1078,6 +1089,7 @@ export default class index extends Component {
     // 芜湖！上面注释里的方法已经过时了！
     componentDidUpdate() {
         const { clickId } = this.props
+        console.log(this.props);
         console.log(clickId)
         this.state.mode = 0
         this.searchSingleDsReset()

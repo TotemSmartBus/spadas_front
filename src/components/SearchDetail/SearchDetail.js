@@ -10,7 +10,7 @@ export default class SearchDetail extends Component {
 
     handleSearchRelatedClicked = () => {
         console.log(this.props)
-        axios.post(global.config.url + 'dsquery', { k: global.config.k, dim: 2, mode: global.config.mode, datasetId: this.props.id })
+        axios.post(global.config.url + 'dsquery', { k: global.config.k, dim: 2, mode: global.config.examplarMode, datasetId: this.props.id })
             .then(res => {
                 console.log(res)
                 Pubsub.publish("dsquery2Map", {
@@ -66,9 +66,10 @@ export default class SearchDetail extends Component {
                             <li className="nav-item">
                                 <a className="nav-link active" href="#">DatasetInfo</a>
                             </li>
-                            <li className="nav-item">
+                            {/* 暂时不要 */}
+                            {/* <li className="nav-item">
                                 <a className="nav-link" href="#">Metadata</a>
-                            </li>
+                            </li> */}
                             {/* <li className="nav-item">
                                 <a className="nav-link" href="#">Others</a>
                             </li> */}

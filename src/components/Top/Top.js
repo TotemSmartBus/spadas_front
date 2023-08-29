@@ -31,7 +31,8 @@ export default class Top extends Component {
     // };
 
     handleRefresh = () => {
-        this.props.refreshMapMain()
+        // this.props.refreshMapMain()
+        Pubsub.publish("refresh", {});
     }
 
     handleUpload = (e) => {
