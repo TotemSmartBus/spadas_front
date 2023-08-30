@@ -13,22 +13,25 @@ export default class Augmentarea extends Component {
     // unionMatrix = []
 
     state = {
-        unionQId: null, 
-        unionQFilename: null, 
+        unionQId: null,
+        unionQFilename: null,
         unionDIds: [],
         unionDFilenames: [],
-        uniondata: [], 
-        joinId: [], 
-        joinFilename: [], 
-        previewHeaders: [], 
+        uniondata: [],
+        joinId: [],
+        joinFilename: [],
+        previewHeaders: [],
         previewBody: [],
-        urqQId: null, 
-        urqQFilename: null, 
-        urqDId: null, 
+        urqQId: null,
+        urqQFilename: null,
+        urqDId: null,
         urqDFilename: null,
         rangeMin: [],
         rangeMax: [],
-        type: null
+        type: null,
+
+        augIds: [],
+        augFilenames: []
     }
     list = (length) => {
         var res = [];
@@ -142,7 +145,20 @@ export default class Augmentarea extends Component {
             // this.setState({ unionId: uid, unionFilename: name, uniondata: udata })
         })
 
-
+        this.addSingleToken = PubSub.subscribe("addSingle", (_, obj) => {
+            var ids = this.state.augIds;
+            var filenames = this.state.augFilenames;
+            if (!ids.contain(obj.id) && ids.length < 2) {
+                ids.push(obj.id);
+                filenames.push(obj.filename);
+                this.setState({
+                    augIds: ids,
+                    augFilenames: filenames
+                });
+            } else {
+                toast.error("Fail: Add to Augmentation");
+            }
+        })
 
         this.joinSingleToken = PubSub.subscribe("joinSingle", (_, obj) => {
             var jid = this.state.joinId
@@ -209,22 +225,26 @@ export default class Augmentarea extends Component {
     }
 
     handleJoin = () => {
-        console.log("call handleJoin")
-        this.joinToken = PubSub.publish("join", {
-            opMode: 2
-        })
-        axios.get(global.config.url + 'join' + '?queryId=' + this.state.joinId[0] + '&datasetId=' + this.state.joinId[1]
-            + '&rows=' + global.config.preRows)
-            .then(res => {
-                console.log(res.data);
-                var joindata = this.state.previewBody
-                joindata.push(res.data.joinData)
-                var header = this.state.previewHeaders
-                header.push(res.data.header)
-                this.setState({ previewHeaders: header, previewBody: joindata })
-                console.log(this.state)
-                toast.success('Join Success.');
-            })
+        console.log("call handleJoin");
+        if (this.state.augIds.length === 2) {
+            this.joinToken = PubSub.publish("join", {
+                opMode: 2
+            });
+            axios.get(global.config.url + 'join' + '?queryId=' + this.state.augIds[0] + '&datasetId=' + this.state.augIds[1]
+                + '&rows=' + global.config.preRows)
+                .then(res => {
+                    console.log(res.data);
+                    var joindata = this.state.previewBody
+                    joindata.push(res.data.joinData)
+                    var header = this.state.previewHeaders
+                    header.push(res.data.header)
+                    this.setState({ previewHeaders: header, previewBody: joindata })
+                    console.log(this.state)
+                    toast.success('Join Success.');
+                });
+        } else {
+            toast.error("Fail: Only One Dataset.");
+        }
     }
 
     handleURQ = () => {
@@ -308,12 +328,12 @@ export default class Augmentarea extends Component {
         return (
             <div>
                 <div className="area2">
-                    <div className="union changeline">
+                    {/* <div className="union changeline">
                         <p>Union:</p>
                         <span className='ml-2'>{this.state.unionQFilename}</span>
                         {
                             this.state.unionDIds.map((item, idx) => (
-                                <span key={item} className="ml-2">{this.state.unionDFilenames[idx]}</span>
+                                <p key={item} className="ml-2">{this.state.unionDFilenames[idx]}</p>
                             ))
                         }
                     </div>
@@ -321,19 +341,22 @@ export default class Augmentarea extends Component {
                         <p>Join:</p>
                         {
                             this.state.joinId.map((item, idx) => (
-                                <span key={item} className="ml-2">{this.state.joinFilename[idx]}</span>
+                                <p key={item} className="ml-2">{this.state.joinFilename[idx]}</p>
                             ))
                         }
                     </div>
                     <div className="union changeline">
                         <p>Union Range Query:</p>
-                        {/* {
-                            this.state.joinId.map((item, idx) => (
-                                <span key={item} className="ml-2">{this.state.joinFilename[idx]}</span>
-                            ))
-                        } */}
                         <span className='ml-2'>{this.state.urqQFilename}</span>
                         <span className='ml-2'>{this.state.urqDFilename}</span>
+                    </div> */}
+                    <div className='union changeline'>
+                        <p>Augmentation</p>
+                        {
+                            this.state.augIds.map((item, idx) => (
+                                <p key={item} className="ml-2">{this.state.augFilenames[idx]}</p>
+                            ))
+                        }
                     </div>
                 </div>
                 <div>

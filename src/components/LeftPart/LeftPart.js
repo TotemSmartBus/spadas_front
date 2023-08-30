@@ -24,13 +24,13 @@ export default class LeftPart extends Component {
     render() {
         return (
             <div>
-                <p>
+                {/* 删除Option组件 */}
+                {/* <p>
                     <Option />
-                </p>
+                </p> */}
 
-                <p>
+                {/* <p>
                     <Tabs defaultActiveKey={1} animation={false} id="noanim-tab-example">
-                        {/* <Tab eventKey={1} title="Search Tab">   */}
                         <Tab eventKey={1} title="Setting Tab">
                             <ParamSetting />
                         </Tab>
@@ -41,7 +41,14 @@ export default class LeftPart extends Component {
                             <KeywordsSearch />
                         </Tab>
                     </Tabs>
-                </p>
+                </p> */}
+
+                <div>
+                    <ParamSetting />
+                    <Augmentarea />
+                    <KeywordsSearch />
+                </div>
+
                 <p>
                     <SeachHits onClickedDsChange={this.props.onClickedDsChange} disabled='true' />
                 </p>

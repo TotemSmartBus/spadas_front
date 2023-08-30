@@ -174,6 +174,25 @@ export default class SeachHits extends Component {
             // console.log(this.state.selFilename)
 
         }
+
+        let add = document.querySelector("#add" + idx);
+        if (add) {
+            console.log(add);
+            if (add.contains(e.target)) {
+                PubSub.publish("addSingle", {
+                    id: e.target.getAttribute("dsid"),
+                    filename: e.target.getAttribute("filename")
+                })
+            }
+            console.log("click on one dataset.");
+            this.props.onClickedDsChange(data.datasetID);
+            this.setState({
+                selid: data.datasetID,
+                selFilename: data.fileName,
+                selNode: data
+            });
+        }
+
         // else {
         //     //div(除btn)点击事件
 
@@ -242,8 +261,9 @@ export default class SeachHits extends Component {
                                         {/* 感觉这些属性很有问题 */}
                                         {/* 为啥非要设置这么多冗余的属性 */}
                                         <p>
-                                            <button id={"union" + idx} dsid={item.datasetID} idx={idx} filename={item.fileName} className="badge badge-primary badge-pill augbtn">Union</button>
-                                            <button id={"join" + idx} dsid={item.datasetID} idx={idx} filename={item.fileName} className="badge badge-primary badge-pill augbtn mr-2">Join</button>
+                                            {/* <button id={"union" + idx} dsid={item.datasetID} idx={idx} filename={item.fileName} className="badge badge-primary badge-pill augbtn">Union</button>
+                                            <button id={"join" + idx} dsid={item.datasetID} idx={idx} filename={item.fileName} className="badge badge-primary badge-pill augbtn mr-2">Join</button> */}
+                                            <button id={"add" + idx} dsid={item.datasetID} idx={idx} filename={item.fileName} className="badge badge-primary badge-pill augbtn">AddToAug</button>
                                         </p>
                                         {/* } */}
                                     </div>

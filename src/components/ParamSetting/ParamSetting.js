@@ -44,17 +44,27 @@ export default class ParamSetting extends Component {
         console.log(global.config);
     }
 
+    componentDidUpdate() {
+        global.config.k = this.state.k
+        global.config.error = this.state.error
+        // global.config.preRows = this.state.preRows
+        global.config.examplarMode = this.state.modeMap.get(this.state.selExamplarMode);
+        global.config.rangeMode = this.state.modeMap.get(this.state.selRangeMode);
+        console.log(global.config);
+    }
+
 
     render() {
         return (
-            <div className="area">
+            <div >
                 {/* MetricMode dropdown menu */}
 
                 <Accordion defaultActiveKey="0">
                     <Accordion.Item eventKey='0'>
-                        <Accordion.Header style={{ fontSize: '16px', width: '400px' }}>Option 11111</Accordion.Header>
+                        {/* 为什么内联样式无法生效啊！ */}
+                        <Accordion.Header style={{ fontSize: '20px', width: '100%', border: "none" }}>Parameter Settings      ∨</Accordion.Header>
                         <Accordion.Body >
-                            <div className="input-group mb-3 pm0 mt-3" style={{ width: '400px' }}>
+                            <div className="input-group mb-3 pm0 mt-1" style={{ width: '200px' }}>
                                 <select className="custom-select" id="inputGroupSelect01" onChange={(e) => { this.setState({ selExamplarMode: e.target.value }) }} >
                                     {
                                         this.state.examplarModes.map((item, index) => {
@@ -68,7 +78,7 @@ export default class ParamSetting extends Component {
                                     <label className="input-group-text" htmlFor="inputGroupSelect01">Examplar Search</label>
                                 </div>
 
-                                <select className="custom-select" id="inputGroupSelect02" style={{ marginLeft: '10px' }} onChange={(e) => { this.setState({ selRangeMode: e.target.value }) }} >
+                                <select className="custom-select" id="inputGroupSelect02" onChange={(e) => { this.setState({ selRangeMode: e.target.value }) }} >
                                     {
                                         this.state.rangeModes.map((item, index) => {
                                             return (
@@ -85,6 +95,15 @@ export default class ParamSetting extends Component {
                                 {/* <div className="col">
                         <input type="number" min="0" className="form-control" placeholder="PreviewRows Default 10" onChange={this.PreRowChanged}/>
                     </div> */}
+                                <div className="form-row">
+                                    <div className="col-12">
+                                        <input type="number" min="0" className="form-control" placeholder="TopK Default 5" onChange={this.TopkChanged} />
+                                    </div>
+                                    {/* 暂时删除这个参数 */}
+                                    {/* <div className="col">
+                        <input type="number" min="0" className="form-control" placeholder="Err Default 0" onChange={this.ErrorChanged}/>
+                    </div> */}
+                                </div>
                             </div>
                         </Accordion.Body>
                     </Accordion.Item>
@@ -118,7 +137,7 @@ export default class ParamSetting extends Component {
                     </div>
 
                     {/* 暂时不要这个 */}
-                    {/* <div className="col">
+                {/* <div className="col">
                         <input type="number" min="0" className="form-control" placeholder="PreviewRows Default 10" onChange={this.PreRowChanged}/>
                     </div> 
                 </div> */}
@@ -126,18 +145,18 @@ export default class ParamSetting extends Component {
 
 
                 {/* number param setting */}
-                <div className="form-row">
+                {/* <div className="form-row">
                     <div className="col-7">
                         <input type="number" min="0" className="form-control" placeholder="TopK Default 5" onChange={this.TopkChanged} />
-                    </div>
+                    </div> */}
                     {/* 暂时删除这个参数 */}
                     {/* <div className="col">
                         <input type="number" min="0" className="form-control" placeholder="Err Default 0" onChange={this.ErrorChanged}/>
                     </div> */}
-                </div>
+                {/* </div> */}
 
 
-                <button onClick={this.setBtnClicked} type="button" className="btn radiusBtn sfont" style={{ position: "relative", top: "0.5rem" }}>Apply</button>
+                {/* <button onClick={this.setBtnClicked} type="button" className="btn radiusBtn sfont" style={{ position: "relative", top: "0.5rem" }}>Apply</button> */}
             </div>
         )
     }
