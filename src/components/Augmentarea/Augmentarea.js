@@ -31,7 +31,8 @@ export default class Augmentarea extends Component {
         type: null,
 
         augIds: [],
-        augFilenames: []
+        augFilenames: [],
+        isPreview: false
     }
     list = (length) => {
         var res = [];
@@ -189,12 +190,10 @@ export default class Augmentarea extends Component {
         })
 
         this.rangeToken = PubSub.subscribe('getRange', (_, obj) => {
-            if (this.state.urqDId !== null && this.state.urqDId !== null) {
-                this.setState({
-                    rangeMax: obj.rangeMax,
-                    rangeMin: obj.rangeMin
-                })
-            }
+            this.setState({
+                rangeMax: obj.rangeMax,
+                rangeMin: obj.rangeMin
+            });
         })
     }
 
@@ -204,22 +203,26 @@ export default class Augmentarea extends Component {
     }
 
     handleUnion = () => {
-        this.unionToken = PubSub.publish("union", {
-            opMode: 1
-        })
-        axios.post(global.config.url + 'union', {
-            queryId: this.state.unionQId,
-            unionIds: this.state.unionDIds,
-            preRows: global.config.preRows
-        }).then(res => {
-            console.log(res);
-            this.setState({
-                previewHeaders: res.data.headers,
-                previewBody: res.data.bodies,
-                type: res.data.type
-            });
-            toast.success("Union Success.");
-        })
+        if (this.state.augIds.length === 2) {
+            this.unionToken = PubSub.publish("union", {
+                opMode: 1
+            })
+            axios.post(global.config.url + 'union', {
+                queryId: this.state.augIds[0],
+                unionIds: this.state.augIds[1],
+                preRows: global.config.preRows
+            }).then(res => {
+                console.log(res);
+                this.setState({
+                    previewHeaders: res.data.headers,
+                    previewBody: res.data.bodies,
+                    type: res.data.type
+                });
+                toast.success("Union Success.");
+            })
+        } else {
+            toast.error("Fail: Dataset Not Enough.");
+        }
 
         // this.preview()
     }
@@ -234,35 +237,46 @@ export default class Augmentarea extends Component {
                 + '&rows=' + global.config.preRows)
                 .then(res => {
                     console.log(res.data);
-                    var joindata = this.state.previewBody
+                    var joindata = []
                     joindata.push(res.data.joinData)
-                    var header = this.state.previewHeaders
-                    header.push(res.data.header)
-                    this.setState({ previewHeaders: header, previewBody: joindata })
+                    // var header = this.state.previewHeaders
+                    // header.push(res.data.header)
+                    this.setState({
+                        previewHeaders: res.data.header,
+                        previewBody: joindata,
+                        type: "join"
+                    })
                     console.log(this.state)
                     toast.success('Join Success.');
                 });
         } else {
-            toast.error("Fail: Only One Dataset.");
+            toast.error("Fail: Dataset Not Enough.");
         }
     }
 
     handleURQ = () => {
-        axios.post(global.config.url + 'unionRangeQuery', {
-            queryId: this.state.urqQId,
-            rangeMax: this.state.rangeMax,
-            rangeMin: this.state.rangeMin,
-            unionId: this.state.urqDId,
-            preRows: global.config.preRows
-        }).then(res => {
-            console.log(res);
-            this.setState({
-                previewHeaders: res.data.headers,
-                previewBody: res.data.bodies,
-                type: res.data.type
+        if (this.state.augIds.length === 2 && this.state.rangeMax.length > 0) {
+            axios.post(global.config.url + 'unionRangeQuery', {
+                queryId: this.state.augIds[0],
+                rangeMax: this.state.rangeMax,
+                rangeMin: this.state.rangeMin,
+                unionId: this.state.augIds[1],
+                preRows: global.config.preRows
+            }).then(res => {
+                console.log(res);
+                this.setState({
+                    previewHeaders: res.data.headers,
+                    previewBody: res.data.bodies,
+                    type: res.data.type
+                })
+                toast.success('Union Range Query Success.');
             })
-            toast.success('Union Range Query Success.');
-        })
+        } else if (this.state.augIds.length < 2) {
+            toast.error("Fail: Dataset Not Enough.");
+        } else {
+            toast.error("Notice: Draw a Range First.");
+        }
+
     }
 
     handleUnionSearch = () => {
@@ -284,7 +298,15 @@ export default class Augmentarea extends Component {
     }
 
     handleEmpty = () => {
-        this.setState({ unionId: [], unionFilename: [], uniondata: [], joinId: [], joinFilename: [], previewHeaders: [], previewBody: [] })
+        this.setState({ 
+            previewHeaders: [],
+            previewBody: [],
+            rangeMax: [],
+            rangeMin: [],
+            type: null,
+            augIds: [],
+            augFilenames: []
+         })
         this.emptyToken = PubSub.publish('emptyAug', {
             opMode: 1
         })
@@ -367,10 +389,11 @@ export default class Augmentarea extends Component {
                         {/* <button type="button" className="btn radiusBtn sfont" onClick={this.handleUnionSearch}>UnionSearch</button> */}
                         {/* </p> */}
                         {/* <p> */}
-                        <button type="button" className="btn radiusBtn sfont fr" onClick={this.handleEmpty}>Empty</button>
+                        
                         {/* <button type="button" className="btn radiusBtn sfont fr" onClick={this.handleDownloadClicked} >Download</button> */}
                         {/* data-for用来标识该button和控件preview（也就是下面的ReactTooltip）相关联 */}
                         <button data-tip data-for='preview' data-event='focusin' data-event-off='focusout' place="right" type="button" className="btn radiusBtn sfont fr" >Preview</button>
+                        <button type="button" className="btn radiusBtn sfont fr" onClick={this.handleEmpty}>Empty</button>
                     </p>
                     <ReactTooltip id='preview' type="light" place="right" offset={{ right: -170 }} clickable={true} effect="solid" className="maxZ scroll" >
                         {/* {this.list(this.state.previewBody.length)} */}

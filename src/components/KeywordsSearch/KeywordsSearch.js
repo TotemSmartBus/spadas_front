@@ -29,7 +29,7 @@ export default class KeywordsSearch extends Component {
 
     render() {
         return (
-            <div className='input-group mb-3 mt-3'>
+            <div className='input-group mb-3 mt-5'>
                 <input type="text" className="form-control" placeholder="Keywords" onChange={this.KeywordsChanged} />
                 <div className="input-group-append">
                     <button className="btn btn-outline-primary" type="button" id="button-addon2" onClick={this.setBtnClicked}>Search</button>

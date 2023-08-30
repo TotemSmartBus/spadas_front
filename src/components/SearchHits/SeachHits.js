@@ -147,16 +147,16 @@ export default class SeachHits extends Component {
             this.props.onClickedDsChange(data.datasetID)
 
             // 发布union range query事件
-            if (this.state.isTopk === true) {
-                PubSub.publish('urq', {
-                    isQ: false,
-                    id: data.datasetID,
-                    name: data.fileName
-                })
-                PubSub.publish('isURQ', {
-                    isURQ: true
-                })
-            }
+            // if (this.state.isTopk === true) {
+            //     PubSub.publish('urq', {
+            //         isQ: false,
+            //         id: data.datasetID,
+            //         name: data.fileName
+            //     })
+            //     PubSub.publish('isURQ', {
+            //         isURQ: true
+            //     })
+            // }
 
             // this.props.onClickedDsChange(e.target.getAttribute('dsid'))
             // this.setState({ selid: e.target.getAttribute('dsid'), selMatrix: this.state.data[e.target.getAttribute('idx')].matrix, selFilename: this.state.data[e.target.getAttribute('idx')].filename, selDsType: this.state.data[e.target.getAttribute('idx')].node.type })

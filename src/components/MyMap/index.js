@@ -113,7 +113,7 @@ export default class index extends Component {
         //rectangle of range query
         this.rec = null
         //shades outside the rec of range query
-        this.shades = null
+        // this.shades = null
         // index page's all of the dataset's marker
         this.markers = []
         // clickedDataset's trajactory
@@ -211,8 +211,8 @@ export default class index extends Component {
     }
 
     removeShades() {
-        if (this.shades !== null)
-            this.map.removeLayer(this.shades)
+        // if (this.shades !== null)
+        //     this.map.removeLayer(this.shades)
         if (this.rec !== null)
             this.rec.remove()
     }
@@ -224,12 +224,12 @@ export default class index extends Component {
     }
 
     btnResetMap() {
-        if (this.shades !== null)
-            this.map.removeLayer(this.shades)
+        // if (this.shades !== null)
+        //     this.map.removeLayer(this.shades)
         if (this.rec !== null)
             this.rec.remove()
-        this.shades = new window.L.LeafletShades();
-        this.shades.addTo(this.map);
+        // this.shades = new window.L.LeafletShades();
+        // this.shades.addTo(this.map);
     }
 
     drawOp(opMode, clickId) {
@@ -595,6 +595,7 @@ export default class index extends Component {
         this.map.setView([38, -77], 4)
         // this.setState({ isURQ: false });
         this.loadExample();
+        this.isRangeQueryButtonClicked = false;
         this.map.getContainer().classList.remove('crosshair-cursor');
     }
 
@@ -714,12 +715,12 @@ export default class index extends Component {
             this.refreshMap()
         })
 
-        this.isURQToken = PubSub.subscribe('isURQ', (_, obj) => {
-            // this.setState({
-            //     isURQ: obj.isURQ
-            // })
-            that.isURQ = obj.isURQ;
-        })
+        // this.isURQToken = PubSub.subscribe('isURQ', (_, obj) => {
+        //     // this.setState({
+        //     //     isURQ: obj.isURQ
+        //     // })
+        //     that.isURQ = obj.isURQ;
+        // })
 
         this.refreshToken = PubSub.subscribe('refresh', (_, obj) => {
             this.refreshMap();
@@ -744,11 +745,11 @@ export default class index extends Component {
         //   }));
 
         // 高德源，优势：放大倍数足够，不需要vpn；劣势：国外地图标注极少
-        this.map.addLayer(window.L.tileLayer.chinaProvider('GaoDe.Normal.Map', {maxZoom: 19, minZoom: 1}))
+        this.map.addLayer(window.L.tileLayer.chinaProvider('GaoDe.Normal.Map', { maxZoom: 19, minZoom: 1 }))
 
         // 高德源，优势：不需要vpn；劣势：国外地图标注较少，放大倍数不够
         // this.map.addLayer(window.L.tileLayer('http://map.geoq.cn/ArcGIS/rest/services/ChinaOnlineCommunity/MapServer/tile/{z}/{y}/{x}', {maxZoom: 14, minZoom: 1}))
-        
+
         // 使用默认osm地图源，需要翻墙加载
         // this.map.addLayer(window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, minZoom: 1 }))
         // console.log("1")
@@ -765,8 +766,8 @@ export default class index extends Component {
         //     format: "image/png",
         //     transparent: true
         // }).addTo(this.map);
-        this.shades = new window.L.LeafletShades().addTo(this.map);
-        console.log(this.shades);
+        // this.shades = new window.L.LeafletShades().addTo(this.map);
+        // console.log(this.shades);
         // this.shades.addTo(this.map);
 
         // window.L.control.mousePosition().addTo(this.map);
@@ -802,18 +803,18 @@ export default class index extends Component {
                 toast.success("Drawing Cancelled.");
             }
             that.isRangeQueryButtonClicked = !that.isRangeQueryButtonClicked
-            // mapContainer.classList.remove('crosshair-cursor');
-
-            // // 重写一下逻辑
-            // // 改变鼠标形态为十字光标
-            // that.map.getContainer().style.cursor = 'crosshair';
-
-
-            // // 监听鼠标按下事件
-            // that.map.on('mousedown', (e) => {
-            //     this.
-            // })
         }).addTo(this.map);
+
+        this.map.on('editable:drawing:end', function (e) {
+            console.log(e);
+            console.log(that.rec);
+            var mbrmax = [that.rec._bounds._northEast.lat, that.rec._bounds._northEast.lng];
+            var mbrmin = [that.rec._bounds._southWest.lat, that.rec._bounds._southWest.lng];
+            PubSub.publish('getRange', {
+                rangeMax: mbrmax,
+                rangeMin: mbrmin
+            })
+        })
 
         // this.shades.on('editable:drawing:commit', function(e) {
         //     console.log(this.shades._bounds);
@@ -854,7 +855,6 @@ export default class index extends Component {
         // 搜索按钮
         // 负责urq和rq在画框以后的搜索步骤
         var searchBtn = window.L.easyButton('<span class="star2">&telrec;</span>', handleSearch).addTo(this.map);
-        console.log(searchBtn);
 
         function handleSearch() {
             if (that.rec === null) {
@@ -867,28 +867,18 @@ export default class index extends Component {
             }
             // 范围查询调用的api
             console.log("isURQ = " + that.isURQ);
-            if (that.isURQ === false) {
-                axios.post(global.config.url + 'rangequery', { k: global.config.k, dim: 2, querymax: mbrmax, querymin: mbrmin, mode: global.config.rangeMode })
-                    .then(res => {
-                        console.log(mbrmax)
-                        console.log(mbrmin)
-                        console.log(res)
-                        // that.removeShades()
-                        let pure_nodes = res.data.nodes.map(item => item.node)
-                        PubSub.publish('searchhits', {
-                            data: pure_nodes,
-                            isTopk: false
-                        });
+            axios.post(global.config.url + 'rangequery', { k: global.config.k, dim: 2, querymax: mbrmax, querymin: mbrmin, mode: global.config.rangeMode })
+                .then(res => {
+                    console.log(mbrmax)
+                    console.log(mbrmin)
+                    console.log(res)
+                    // that.removeShades()
+                    let pure_nodes = res.data.nodes.map(item => item.node)
+                    PubSub.publish('searchhits', {
+                        data: pure_nodes,
+                        isTopk: false
                     });
-
-            } else {
-                // union range query调用的api，对于指定的D，找到其落在range中的所有点
-                PubSub.publish('getRange', {
-                    rangeMax: mbrmax,
-                    rangeMin: mbrmin
-                })
-                toast('Switch to Augmentation Tab.');
-            }
+                });
         }
 
         // searchBtn.on('click', function() {

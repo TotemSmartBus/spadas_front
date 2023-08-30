@@ -65,6 +65,20 @@ export default class ParamSetting extends Component {
                         <Accordion.Header style={{ fontSize: '20px', width: '100%', border: "none" }}>Parameter Settings      ∨</Accordion.Header>
                         <Accordion.Body >
                             <div className="input-group mb-3 pm0 mt-1" style={{ width: '200px' }}>
+
+                            <select className="custom-select" id="inputGroupSelect02" onChange={(e) => { this.setState({ selRangeMode: e.target.value }) }} >
+                                    {
+                                        this.state.rangeModes.map((item, index) => {
+                                            return (
+                                                <option key={index} value={item}>{item}</option>
+                                            )
+                                        })
+                                    }
+                                </select>
+                                <div className="input-group-append">
+                                    <label className="input-group-text" htmlFor="inputGroupSelect02">Range Query</label>
+                                </div>
+
                                 <select className="custom-select" id="inputGroupSelect01" onChange={(e) => { this.setState({ selExamplarMode: e.target.value }) }} >
                                     {
                                         this.state.examplarModes.map((item, index) => {
@@ -78,18 +92,7 @@ export default class ParamSetting extends Component {
                                     <label className="input-group-text" htmlFor="inputGroupSelect01">Examplar Search</label>
                                 </div>
 
-                                <select className="custom-select" id="inputGroupSelect02" onChange={(e) => { this.setState({ selRangeMode: e.target.value }) }} >
-                                    {
-                                        this.state.rangeModes.map((item, index) => {
-                                            return (
-                                                <option key={index} value={item}>{item}</option>
-                                            )
-                                        })
-                                    }
-                                </select>
-                                <div className="input-group-append">
-                                    <label className="input-group-text" htmlFor="inputGroupSelect02">Range Query</label>
-                                </div>
+                                
 
                                 {/* 暂时不要这个 */}
                                 {/* <div className="col">
