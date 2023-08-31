@@ -168,6 +168,7 @@ export default class index extends Component {
         this.drawRecBtnPopup = null;
         this.drawRecButton = null;
         this.isURQ = false;
+        this.queryData = [];
     }
     searchSingleDsReset() {
         if (this.trajactoryList.length != null) {
@@ -245,7 +246,12 @@ export default class index extends Component {
             clickIds.push(clickId)
             // console.log("xxx: " + clickIds)
             this.drawDetail(clickIds, 'blue', 0)
-            this.drawDetail(queriedID, 'red', 0)
+            if (queriedID >= 0) {
+                this.drawDetail(queriedID, 'red', 0)
+            } else {
+                this.drawNew('red')
+            }
+
         } else if (opMode === 1 && this.unionNodes.length > 0) {
             // union情况，所有union的dataset都画成红色
             // let clickIds = []
@@ -275,6 +281,15 @@ export default class index extends Component {
         // clickIds.push(clickId)
         // this.drawDetail(clickIds, 'blue', -1)
         // }
+    }
+
+    drawNew(color) {
+        console.log(this.queryData);
+        if (this.queryData !== []) {
+            this.queryData.forEach(p => {
+                this.ClickedPointMarker.push(window.L.circleMarker(p, { radius: 2, color: 'black', weight: 0.5, opacity: 0.5, fill: true, fillColor: color, fillOpacity: 1 }).addTo(this.map))
+            })
+        }
     }
 
     drawDetail(clickIds, color, opMode) {
@@ -587,6 +602,7 @@ export default class index extends Component {
         this.isDsQuery = true
         this.joinNodes = []
         this.unionNodes = []
+        this.queryData = []
         this.opMode = -1
 
         // this.drawMarkers()
@@ -657,6 +673,13 @@ export default class index extends Component {
                 this.opMode = stateObj.opMode
             }
             console.log(this.dsQueryNode)
+        })
+
+        this.token2 = PubSub.subscribe("getQueryData", (_, obj) => {
+            this.queryData = obj.queryData;
+            this.rmClusterGroup();
+            this.rmMarkers();
+            this.drawNew('red');
         })
 
         // 添加一个union数据集

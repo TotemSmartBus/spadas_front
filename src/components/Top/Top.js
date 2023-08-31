@@ -15,6 +15,8 @@ import '../globalconfig'
 import { Link } from 'react-router-dom';
 
 import MyMap from '../MyMap/index'
+import { parse } from 'papaparse';
+import { toast } from 'react-hot-toast';
 
 export default class Top extends Component {
     // constructor(props) {
@@ -36,56 +38,119 @@ export default class Top extends Component {
     }
 
     handleUpload = (e) => {
-        console.log(index.state)
-        // var that = this
-        if (e.target.files !== null) {
-            console.log(e.target.files)
-            // star! 此处需new一个formdata，如果直接将e.target.files[0]作为axios的data参将报错
-            var data = new FormData()
-            // var fileList = []
-            // for (let i = 0; i < e.target.files.length; i++) {
-            //     fileList.push(e.target.files[i])
-            //     // data.append('file', e.target.files[i])
-            //     console.log(e.target.files[i])
-            // }
-            for (let i = 0; i < e.target.files.length; i++) {
-                data.append('file', e.target.files[i])
-                console.log(i)
-                console.log(data.getAll('file'))
-            }
-            // data.append("file", fileList)
-            data.append("file", e.target.files[0])
-            // data.append("file", e.target.files)
-            // data.append("a","b")
-            console.log(data.getAll('file'))
-            axios({
-                url: global.config.url + "uploaddataset",
-                method: "post",
-                data: data,
-                headers: { "Content-Type": "multipart/form-data" }
-            })
-            // .then(res => {
-            //     console.log(res.data.matrix)
-            //     if (res.data !== null && res.data.filename !== null) {
-            //         axios({
-            //             url: global.config.url + "dsquery",
-            //             method: "post",
-            //             data: {
-            //                 k: global.config.k,
-            //                 dim: 2,
-            //                 querydata: res.data.matrix,
-            //             },
-            //         })
-            //             .then(res2 => {
-            //                 console.log(res2.data.nodes);
-            //                 // Pubsub.publish("dsquery2Map",{ querynode:{querydata:res.data.matrix,querytype:0,queryname:res2.data.nodes[res2.data.nodes.length-1].filename},nodesVo:res2.data.nodes,mode:1})
-            //                 // console.log(res.data.matrix)
-            //                 Pubsub.publish("searchhits", { data: res2.data.nodes })
-            //             })
-            //     }
-            // })
+        console.log(e.target);
 
-        }
+        // const file = e.target.files[0];
+
+        // if (file) {
+        //     const reader = new FileReader();
+
+        //     reader.onload = (e) => {
+        //         const contents = e.target.result;
+        //         const csvData = parse(contents, { header: true }).data;
+        //         // 在这里处理 CSV 数据
+        //         console.log(csvData);
+
+        //         // 使用 Axios 发送 POST 请求
+        //         axios.post(global.config.url + "uploaddataset", { data: csvData })
+        //             .then(response => {
+        //                 // 请求成功的处理逻辑
+        //                 console.log(response.data);
+        //             })
+        //             .catch(error => {
+        //                 // 请求失败的处理逻辑
+        //                 console.error(error);
+        //             });
+        //     };
+
+        //     reader.readAsText(file);
+        // }
+
+        // var that = this
+        // if (e.target.files !== null) {
+        console.log(e.target.files)
+        // star! 此处需new一个formdata，如果直接将e.target.files[0]作为axios的data参将报错
+        var data = new FormData()
+
+        // var fileList = []
+        // for (let i = 0; i < e.target.files.length; i++) {
+        //     fileList.push(e.target.files[i])
+        //     // data.append('file', e.target.files[i])
+        //     console.log(e.target.files[i])
+        // }
+
+        // for (let i = 0; i < e.target.files.length; i++) {
+        //     data.append('file', e.target.files[i])
+        //     console.log(i)
+        //     console.log(data.getAll('file'))
+        // }
+
+        // data.append("file", fileList)
+
+        data.append("file", e.target.files[0])
+        // console.log(e.target.files[0].name);
+        data.append("filename", e.target.files[0].name);
+        data.append("k", global.config.k)
+
+        // data.append("file", e.target.files)
+        // data.append("a","b")
+
+        console.log(data.getAll('file'))
+        axios.post(global.config.url + "uploaddataset", data, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        })
+            .then(res => {
+                console.log(res.data.nodes);
+                if (res.data.nodes === null) {
+                    toast.error("Fail: File Format Does Not Match!")
+                } else {
+                    Pubsub.publish("dsquery2Map", {
+                        opMode: 0,
+                        dsQueryNode: res.data.querynode
+                    });
+                    let pure_nodes = res.data.nodes.map(item => item.node);
+                    Pubsub.publish('searchhits', {
+                        data: pure_nodes
+                    });
+                    Pubsub.publish("getQueryData", {
+                        queryData: res.data.queryData
+                    });
+                    toast.success("File Uploaded And Searched.")
+                }
+                // console.log(res.data.querynode);
+
+            })
+        // axios({
+        //     url: global.config.url + "uploaddataset",
+        //     method: "post",
+        //     data: data,
+        //     headers: { "Content-Type": "multipart/form-data" }
+        // })
+
+        // .then(res => {
+        //     console.log(res.data.matrix)
+        //     if (res.data !== null && res.data.filename !== null) {
+        //         axios({
+        //             url: global.config.url + "dsquery",
+        //             method: "post",
+        //             data: {
+        //                 k: global.config.k,
+        //                 dim: 2,
+        //                 querydata: res.data.matrix,
+        //             },
+        //         })
+        //             .then(res2 => {
+        //                 console.log(res2.data.nodes);
+        //                 // Pubsub.publish("dsquery2Map",{ querynode:{querydata:res.data.matrix,querytype:0,queryname:res2.data.nodes[res2.data.nodes.length-1].filename},nodesVo:res2.data.nodes,mode:1})
+        //                 // console.log(res.data.matrix)
+        //                 Pubsub.publish("searchhits", { data: res2.data.nodes })
+        //             })
+        //     }
+        // })
+
+        // }
     }
     render() {
         // const { showSSS } = this.state;
@@ -108,14 +173,21 @@ export default class Top extends Component {
                 </span>
 
                 {/* upload file btn */}
-                <form id="upload-form" className="search mynav" encType="multipart/form-data">
-                    <input id="fileInput" type="file" multiple="multiple" style={{ opacity: "0", width: "125px" }} onChange={this.handleUpload} webkitdirectory="webkitdirectory" />
-                    {/* <input id="fileInput" type="file" multiple="multiple" style={{ opacity: "0", width: "125px" }} onChange={this.handleUpload} /> */}
-                    {/* <input type="file" class="custom-file-input" id="inputGroupFile01" aria-describedby="inputGroupFileAddon01"></input> */}
+                {/* <form id="upload-form" className="search mynav" encType="multipart/form-data">
+                    <input id="fileInput" type="file" multiple="multiple" style={{ opacity: "0", width: "125px" }} onChange={this.handleUpload} webkitdirectory="webkitdirectory" /> */}
+                {/* <input id="fileInput" type="file" multiple="multiple" style={{ opacity: "0", width: "125px" }} onChange={this.handleUpload} /> */}
+                {/* <input type="file" class="custom-file-input" id="inputGroupFile01" aria-describedby="inputGroupFileAddon01"></input> */}
+                {/* <span className="sfont modposition"  >
+                        <p>Upload Dataset</p>
+                    </span>
+                </form> */}
+
+                <span className='mynav search'>
+                    <input type='file' accept='.csv' style={{ opacity: "0", width: "125px" }} onChange={this.handleUpload} />
                     <span className="sfont modposition"  >
                         <p>Upload Dataset</p>
                     </span>
-                </form>
+                </span>
 
                 <span className="mynav" style={{ display: 'none' }}>
                     {/* <svg className="pt bi bi-book-half" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">

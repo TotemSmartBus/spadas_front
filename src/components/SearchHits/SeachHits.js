@@ -223,7 +223,7 @@ export default class SeachHits extends Component {
                 {/* <div class="radio">
                     <label><input type="radio" name="optradio" onChange={this.handleSortResult} />Option 1</label>
                 </div> */}
-                <div className="card row pre-scrollable hitbox" style={{ display: "block", marginTop: "2rem" }}>
+                <div className="card row pre-scrollable hitbox" style={{ display: "block", marginTop: "1rem" }}>
                     <div className="card-header">
                         SearchHits
                         <label class="form-check-label rt" style={{ display: 'none' }}>

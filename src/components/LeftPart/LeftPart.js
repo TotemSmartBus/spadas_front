@@ -45,13 +45,17 @@ export default class LeftPart extends Component {
 
                 <div>
                     <ParamSetting />
-                    <Augmentarea />
+
                     <KeywordsSearch />
+
                 </div>
 
                 <p>
                     <SeachHits onClickedDsChange={this.props.onClickedDsChange} disabled='true' />
                 </p>
+                <div>
+                    <Augmentarea />
+                </div>
             </div>
         )
     }

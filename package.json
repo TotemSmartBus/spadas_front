@@ -16,6 +16,7 @@
     "leaflet-shades": "^0.1.4",
     "leaflet.chinatmsproviders": "^3.0.6",
     "leaflet.markercluster": "^1.5.3",
+    "papaparse": "^5.4.1",
     "proj4leaflet": "^1.0.2",
     "pubsub-js": "^1.9.4",
     "react": "^17.0.2",
