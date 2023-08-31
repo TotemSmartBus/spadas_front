@@ -837,6 +837,8 @@ export default class index extends Component {
                 rangeMax: mbrmax,
                 rangeMin: mbrmin
             })
+            const mapContainer = that.map.getContainer();
+            mapContainer.classList.remove('crosshair-cursor');
         })
 
         // this.shades.on('editable:drawing:commit', function(e) {

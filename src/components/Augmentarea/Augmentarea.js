@@ -395,7 +395,7 @@ export default class Augmentarea extends Component {
                         <button data-tip data-for='preview' data-event='focusin' data-event-off='focusout' place="right" type="button" className="btn radiusBtn sfont fr" >Preview</button>
                         <button type="button" className="btn radiusBtn sfont fr" onClick={this.handleEmpty}>Empty</button>
                     </p>
-                    <ReactTooltip id='preview' type="light" place="right" offset={{ right: -170 }} clickable={true} effect="solid" className="maxZ scroll" >
+                    <ReactTooltip id='preview' type="light" place="right" clickable={true} effect="solid" className="maxZ scroll" >
                         {/* {this.list(this.state.previewBody.length)} */}
                         <PreviewTable header={this.state.previewHeaders} key={0} rows={this.state.previewBody} type={this.state.type}></PreviewTable>
                     </ReactTooltip>

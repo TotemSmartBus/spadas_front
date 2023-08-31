@@ -6,13 +6,13 @@ global.config = {
     // url:"http://101.43.173.70:9000/",
     // 开发、测试环境server
     // 本地环境
-    url: "http://localhost:8081/spadas/api/",
+    // url: "http://localhost:8081/spadas/api/",
     // url: "http://localhost:8080/spadas/api/",
     // url:"http://47.105.33.143:8081/",
     // url:"http://125.220.159.206:8081/",
     // url:"http://10.128.145.123:8081/",
     // 服务器环境
-    // url: "http://sheng.whu.edu.cn/spadas/api/",
+    url: "http://sheng.whu.edu.cn/spadas/api/",
     // 试试将url参数抽取到命令行中作为参数
     // url: process.env.REACT_APP_ENV,
     k:5,
