@@ -196,7 +196,7 @@ export default class Top extends Component {
                     {/* <a href="https://www.youtube.com/watch?v=h31btbN4fPs" className='sfont noskip'>
                         Guideline
                     </a> */}
-                    <a href="https://docs.qq.com/doc/DSHVhTlBubmdsa3Z0" className='noskip' target="_blank" style={{ fontSize: "20px", color: "red" }}>
+                    <a href="/Spadas-Guideline.pdf" className='noskip' target="_blank" style={{ fontSize: "20px", color: "red" }}>
                         &gt;&gt;&gt;&nbsp;Guideline&nbsp;&lt;&lt;&lt;
                     </a>
 
