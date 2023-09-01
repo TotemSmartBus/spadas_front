@@ -483,7 +483,7 @@ export default class index extends Component {
     drawClusters(nodes) {
         // 确认一下参数信息
         console.log("length of nodes is: " + this.nodes.length)
-        console.log("first node is: " + nodes[100])
+        console.log(nodes)
 
         // 初始化clusterGroup
         this.clusterGroup = window.L.markerClusterGroup({
@@ -499,10 +499,18 @@ export default class index extends Component {
             // }
             // console.log(node.datasetID + " : " + node.pivot);
             var fileMarker = window.L.marker(node.pivot, { name: node.fileName, id: node.datasetID }).addTo(this.markersLayer);
+            // if (node.fileName === "midnr--michigan-state-park-campgrounds.csv") {
+            //     alert(node.pivot)
+            // }
             fileMarker.on("click", function (e) {
                 var markerID = e.target.options.id
+                // var markerID = node.datasetID;
                 let clickNodes = []
-                clickNodes.push(nodes[parseInt(markerID)])
+                // clickNodes.push(nodes[parseInt(markerID)])
+                clickNodes.push(node);
+                console.log(node);
+                console.log(nodes[parseInt(markerID)]);
+                console.log(e.target.options.id);
                 PubSub.publish("searchhits", { data: clickNodes })
             })
             fileMarker.bindPopup(`${node.fileName}`)
