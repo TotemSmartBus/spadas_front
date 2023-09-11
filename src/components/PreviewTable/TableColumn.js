@@ -2,10 +2,18 @@ import React, { Component } from 'react'
 import ReactTooltip from "react-tooltip";
 
 export default class TableColumn extends Component {
+    // if (idx < middle) {
+    //     bgColor = '#669966'
+    // } else if (idx > middle) {
+    //     bgColor = '#cc99cc'
+    // } else {
+    //     bgColor = '#cccccc'
+    // }
     render() {
         // FIXME: Tricky style
         const hiddenCols = [3, 4, 5, 6, 13, 14, 15, 16]
         const { body, rowNum, type, color } = this.props
+        console.log(body)
         let leftTooltip = '', rightTooltip = ''
         let middle = Math.floor(body.length / 2);
         if (type === 'join') {

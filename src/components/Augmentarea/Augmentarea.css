@@ -1,39 +1,46 @@
-.area2{
-    height: 300px;
+.area2 {
+    height: 100px;
     background-color: azure;
 }
-.area2 p{
+
+.area2 p {
     margin: 0;
 }
 
-.augHead{
+.augHead {
     height: 20px;
 }
 
-.union{
+.union {
     height: 100px;
 }
 
-.changeline{
-    word-wrap:break-word;
-    word-break:break-all;
+.changeline {
+    word-wrap: break-word;
+    word-break: break-all;
 }
 
 .changeline p {
     display: block;
     width: 100%;
-  }
+}
 
-.maxZ{
+.maxZ {
     z-index: 1001 !important;
 }
 
-.scroll{
+.scroll {
     overflow-y: auto;
     max-height: 600px;
     max-width: 1000px;
 }
 
-.fr{
+.fr {
     float: right;
+}
+
+.custom-tooltip {
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
 }

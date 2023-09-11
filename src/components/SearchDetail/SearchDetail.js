@@ -31,12 +31,12 @@ export default class SearchDetail extends Component {
                     isTopk: true
                 });
                 // 发布union range query事件，让Augmentarea组件类来响应
-                Pubsub.publish('urq', {
-                    // 标识是否是query dataset，在topk search中发布的是query dataset，否则不是
-                    isQ: true,
-                    id: this.props.id,
-                    name: this.props.filename
-                });
+                // Pubsub.publish('urq', {
+                //     // 标识是否是query dataset，在topk search中发布的是query dataset，否则不是
+                //     isQ: true,
+                //     id: this.props.id,
+                //     name: this.props.filename
+                // });
                 toast.success("Search Related Datasets Success.");
             })
     }

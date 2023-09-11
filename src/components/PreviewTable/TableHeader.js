@@ -3,6 +3,7 @@ import './previewTable.css'
 
 export default class TableHeader extends Component {
     render() {
+        console.log(this.props);
         const {header, type} = this.props
         if (header == null) {
             return null
@@ -32,11 +33,11 @@ export default class TableHeader extends Component {
                 <tr>
                     {header.map((item, idx) => {
                         if (idx < Math.floor(len / 2)) {
-                            return <th key={idx} className='query'>{item}</th>
+                            return <th key={idx} className='headers'>{item}</th>
                         } else if (idx === Math.floor(len / 2)) {
-                            return <th key={idx} className='dist'>{item}</th>
+                            return <th key={idx} className='headers'>{item}</th>
                         } else {
-                            return <th key={idx} className='result'>{item}</th>
+                            return <th key={idx} className='headers'>{item}</th>
                         }
                     })}
                 </tr>
