@@ -8,15 +8,15 @@ export default class TableHeader extends Component {
         if (header == null) {
             return null
         }
-        // const hiddenHeaders = ['province', 'city', 'area', 'address']
+        const hiddenHeaders = ['province', 'city', 'area', 'address']
         // if (type === 'join') {
         //     return (
         //         <tr>
         //             {header.map((item, idx) => {
-        //                 if (hiddenHeaders.contain(item)) {
-        //                     return null
-        //                 }
-        //                 return <th key={idx}>{item}</th>
+                        // if (hiddenHeaders.contain(item)) {
+                        //     return null
+                        // }
+                        // return <th key={idx}>{item}</th>
         //             })}
         //         </tr>
         //     )
@@ -28,17 +28,21 @@ export default class TableHeader extends Component {
         //     </tr>)
         // }
         var len = header.length;
-        if (type === 'join') {
+        if (type === 'join' && header.length > 10) {
             return (
                 <tr>
                     {header.map((item, idx) => {
-                        if (idx < Math.floor(len / 2)) {
-                            return <th key={idx} className='headers'>{item}</th>
-                        } else if (idx === Math.floor(len / 2)) {
-                            return <th key={idx} className='headers'>{item}</th>
-                        } else {
-                            return <th key={idx} className='headers'>{item}</th>
+                        // if (idx < Math.floor(len / 2)) {
+                        //     return <th key={idx} className='headers'>{item}</th>
+                        // } else if (idx === Math.floor(len / 2)) {
+                        //     return <th key={idx} className='headers'>{item}</th>
+                        // } else {
+                        //     return <th key={idx} className='headers'>{item}</th>
+                        // }
+                        if (hiddenHeaders.contain(item)) {
+                            return null
                         }
+                        return <th key={idx} className='headers'>{item}</th>
                     })}
                 </tr>
             )

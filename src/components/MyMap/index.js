@@ -577,7 +577,7 @@ export default class index extends Component {
     // 用于和论文中的例子匹配而增加的默认样例flu-shot
     // 要求初始界面地图上聚焦该数据集，左侧结果栏显示该数据集，左侧详情栏显示该数据集详情
     loadExample() {
-        var exampleLeafletId = 0;
+        var exampleLeafletId;
         var layers = this.markersLayer.getLayers();
         // 找到markersLayer中该数据集对应的图层，记录其_leaflet_id属性（只有通过该属性才能获取到该图层对象）
         layers.forEach((layer) => {
@@ -588,8 +588,12 @@ export default class index extends Component {
         })
         console.log(this.markersLayer.getLayer(exampleLeafletId));
         // 触发该数据集图层对象的点击事件
-        var exampleMarker = this.markersLayer.getLayer(exampleLeafletId);
-        exampleMarker.fire('click');
+        
+        if (exampleLeafletId) {
+            var exampleMarker = this.markersLayer.getLayer(exampleLeafletId);
+            exampleMarker.fire('click');
+        }
+        
         this.map.setView([40, -75], 4);
     }
 

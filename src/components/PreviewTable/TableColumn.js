@@ -13,7 +13,7 @@ export default class TableColumn extends Component {
         // FIXME: Tricky style
         const hiddenCols = [3, 4, 5, 6, 13, 14, 15, 16]
         const { body, rowNum, type, color } = this.props
-        console.log(body)
+        console.log(this.props)
         let leftTooltip = '', rightTooltip = ''
         let middle = Math.floor(body.length / 2);
         if (type === 'join') {
