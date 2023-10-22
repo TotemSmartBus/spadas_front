@@ -1,29 +1,20 @@
-# Getting Started with Create React App
+# Spadas Project
+
+## Spadas front-end Project
+
+### About the project
+
+This is a project focus on explore the spatial datasets on the earth.
+
+We provide a interactive web user interface for users to query datasets on the map and **search related datasets easily**.
 
 
+### About Us
 
-## Available Scripts
+We are dataset management group from [Sheng's Group](http://sheng.whu.edu.cn/group.html). Our aims including spatial dataset augmentation, spatial dataset search, spatial dataset system benchmark and so on.
 
-### `npm install`
-To install dependencies into your node_module directory.
+If you are interested about our project, please contact us from the homepage: [http://sheng.whu.edu.cn](http://sheng.whu.edu.cn) or [Email Us](mailto://shengcs@whu.edu.cn).
 
-### `npm start`
+### GuideLine
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
-
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
-
-
-### `npm run build`
-
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-
+This project 
