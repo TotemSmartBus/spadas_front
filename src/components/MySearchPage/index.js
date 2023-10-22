@@ -2,7 +2,7 @@ import React, {Component} from 'react'
 import {Col, Row} from 'antd'
 
 import LeftPart from '../LeftPart/LeftPart'
-import MyMap from '../MyMap'
+import MyMap from '../MyMap/MyMap'
 
 
 export default class index extends Component {

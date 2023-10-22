@@ -67,7 +67,7 @@ var heatmapConf = {
     valueField: 'count'
 }
 
-export default class index extends Component {
+export default class myMap extends Component {
 
     constructor(props) {
         super(props)
