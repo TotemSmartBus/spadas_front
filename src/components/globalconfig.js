@@ -2,41 +2,31 @@
 // 搜索的参数配置和querydata作为全局变量保存
 
 global.config = {
-    // 生产环境server
-    // url:"http://101.43.173.70:9000/",
-    // 开发、测试环境server
-    // 本地环境
-    // url: "http://localhost:8081/spadas/api/",
-    // url: "http://localhost:8080/spadas/api/",
-    // url:"http://47.105.33.143:8081/",
-    // url:"http://125.220.159.206:8081/",
-    // url:"http://10.128.145.123:8081/",
-    // 服务器环境
-    url: "http://sheng.whu.edu.cn/spadas/api/",
+    rangeQueryMode: ['IA', 'GBO'],
+    pointQueryMode: ['Haus', 'IA', 'GBO'],
     // 试试将url参数抽取到命令行中作为参数
-    // url: process.env.REACT_APP_ENV,
-    k:5,
-    error:0,
-    examplarMode:0,
-    rangeMode:1,
-    preRows:20,
-    traNum:200,
-    unionIds:[]
+    url: process.env.REACT_APP_BACKEND_URL,
+    k: 5,
+    error: 0,
+    examplarMode: 0,
+    rangeMode: 1,
+    preRows: 20,
+    traNum: 200,
+    unionIds: [],
 }
 
 global.data = {
-  querydata:[]
+    querydata: [],
 }
 
 // 为Array原型添加contain函数
-Array.prototype.contain = function(val)
-{
-     for (var i = 0; i < this.length; i++)
-    {
-       if (this[i] == val)
-      {
-       return true;
-      }
+Array.prototype.contain = function (val) {
+    for (var i = 0; i < this.length; i++) {
+        if (this[i] === val) {
+            return true;
+        }
     }
-     return false;
+    return false;
 }
+
+export default global
