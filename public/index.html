@@ -1,62 +1,29 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-  <head>
-    <meta charset="utf-8" />
-    <!-- <link rel="icon" href="%PUBLIC_URL%/favicon.ico" /> -->
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#000000" />
-    <meta
-      name="description"
-      content="Web site created using create-react-app"
-    />
-    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
-
-    <!-- jQuery文件。务必在bootstrap.min.js 之前引入 -->
-    <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
-    <!-- 新 Bootstrap4 核心 CSS 文件 -->
-    <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.3.1/css/bootstrap.min.css">
-
-    <!-- 用于弹窗、提示、下拉菜单，包含了 popper.min.js -->
-    <script src="https://cdn.staticfile.org/popper.js/1.15.0/umd/popper.min.js"></script>
-    
-    <!-- 最新的 Bootstrap4 核心 JavaScript 文件 -->
-    <script src="https://cdn.staticfile.org/twitter-bootstrap/4.3.1/js/bootstrap.min.js"></script>
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta name="theme-color" content="#000000"/>
+    <meta name="description" content="Web site created using create-react-app"/>
+    <link rel="manifest" href="%PUBLIC_URL%/manifest.json"/>
 
     <!-- leafletjs 资源 -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
-   integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
-   crossorigin=""/>
+          integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+          crossorigin=""/>
     <!-- Make sure you put this AFTER Leaflet's CSS -->
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
-    integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
-    crossorigin=""></script>
+            integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+            crossorigin=""></script>
 
-    <link rel="stylesheet" href="./cluster/MarkerCluster.css" />
-    <link rel="stylesheet" href="./cluster/MarkerCluster.Default.css" />
+    <link rel="stylesheet" href="./cluster/MarkerCluster.css"/>
+    <link rel="stylesheet" href="./cluster/MarkerCluster.Default.css"/>
     <script src="./cluster/leaflet.markercluster.js"></script>
 
-     <!-- Leaflet plugin:EasyButton  -->
-    <!-- <link rel="stylesheet" href="./EasyButton/src/easy-button.css">
-    <script src="./EasyButton/src/easy-button.js"></script>  -->
-    <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-easybutton@2/src/easy-button.css">
-    <script src="https://cdn.jsdelivr.net/npm/leaflet-easybutton@2/src/easy-button.js"></script> -->
-
-    <!-- Leaflet plugin: leaflet-shades -->
-    <link rel="stylesheet" href="./leaflet-shades/src/css/leaflet-shades.css" />
-    <script src="./leaflet-shades/dist/leaflet-shades.js"></script>
-
-    <link rel="stylesheet" href="./easybutton/easy-button.css" />
+    <link rel="stylesheet" href="./easybutton/easy-button.css"/>
     <script src="./easybutton/easy-button.js"></script>
 
-
-    <!-- Leaflet plugin: leaflet mouse-position-->
-    <link rel="stylesheet" href="./MousePosition/L.Control.MousePosition.css"/>
-    <script src="./MousePosition/L.Control.MousePosition.js"></script>
-
     <script src="./leaflet-canvas-marker/src/plugin/leaflet.canvas-markers.js"></script>
-
-    <!-- <link rel="stylesheet" href="./leaflet-auto-graticule/L.AutoGraticule.css"/>
-    <script src="./leaflet-auto-graticule/L.AutoGraticule.ts"></script> -->
 
     <link rel="stylesheet" href="./leaflet-simple-graticule/L.SimpleGraticule.css"/>
     <script src="./leaflet-simple-graticule/L.SimpleGraticule.js"></script>
@@ -65,19 +32,9 @@
     <script src="./leaflet-heatmap/leaflet-heatmap.js"></script>
 
     <title>Spadas</title>
-  </head>
-  <body>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
-    <div id="root" style="height: 100%"></div>
-    <!--
-      This HTML file is a template.
-      If you open it directly in the browser, you will see an empty page.
-
-      You can add webfonts, meta tags, or analytics to this file.
-      The build step will place the bundled scripts into the <body> tag.
-
-      To begin the development, run `npm start` or `yarn start`.
-      To create a production bundle, use `npm run build` or `yarn build`.
-    -->
-  </body>
+</head>
+<body>
+<noscript>You need to enable JavaScript to run this app.</noscript>
+<div id="root" style="height: 100%"></div>
+</body>
 </html>

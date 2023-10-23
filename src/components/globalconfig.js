@@ -1,6 +1,5 @@
 // 全局参数和数据区
 // 搜索的参数配置和querydata作为全局变量保存
-
 global.config = {
     rangeQueryMode: ['IA', 'GBO'],
     pointQueryMode: ['Haus', 'IA', 'GBO'],
@@ -11,7 +10,6 @@ global.config = {
     examplarMode: 0,
     rangeMode: 1,
     preRows: 20,
-    traNum: 200,
     unionIds: [],
 }
 

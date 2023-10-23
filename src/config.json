@@ -1,0 +1,7 @@
+{
+  "rangeQueryModes": ["IA", "GBO"],
+  "pointQueryModes": ["Haus", "IA", "GBO"],
+  "defaultTopK": 5,
+  "defaultPreviewLimit": 20,
+  "defaultTrajectoryLimit": 200
+}
