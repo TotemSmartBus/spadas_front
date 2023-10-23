@@ -1,8 +1,8 @@
-import {Avatar, Image} from 'antd'
+import {Avatar} from 'antd'
 import React from 'react'
 import logo from './spadas.png'
 
-const Logo = (props) => {
+const Logo = () => {
     return (
         <div>
             <Avatar src={logo} alt="Spadas Logo" size={60}/>
