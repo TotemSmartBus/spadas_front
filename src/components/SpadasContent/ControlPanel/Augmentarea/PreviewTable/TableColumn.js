@@ -1,5 +1,5 @@
 import React from 'react'
-import ReactTooltip from "react-tooltip";
+import {Tooltip} from "react-tooltip";
 
 const TableColumn = (props) => {
     // FIXME: Tricky style
@@ -11,7 +11,6 @@ const TableColumn = (props) => {
         return (
             <tr>
                 {body.map((item, idx) => {
-                    // debugger
                     var bgColor
                     if (idx < middle) {
                         bgColor = '#669966'
@@ -38,8 +37,8 @@ const TableColumn = (props) => {
                     }
                     return <td key={idx} style={{backgroundColor: bgColor}}>{item}</td>
                 })}
-                <ReactTooltip id={'leftTooltip-r' + rowNum}>{leftTooltip}</ReactTooltip>
-                <ReactTooltip id={'rightTooltip-r' + rowNum}>{rightTooltip}</ReactTooltip>
+                <Tooltip id={'leftTooltip-r' + rowNum}>{leftTooltip}</Tooltip>
+                <Tooltip id={'rightTooltip-r' + rowNum}>{rightTooltip}</Tooltip>
             </tr>
         )
     } else {

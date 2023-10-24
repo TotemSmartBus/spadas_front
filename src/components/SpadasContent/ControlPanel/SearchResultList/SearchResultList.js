@@ -1,11 +1,13 @@
 import {Avatar, Button, List} from 'antd'
 import React, {Component} from 'react'
 import PubSub from 'pubsub-js'
+import globalconfig from '../../../globalconfig'
 
 import SearchDetail from './SearchDetail/SearchDetail'
-import './SearchHits.css'
 import '../../../globalconfig'
 
+
+const colors = globalconfig.config && globalconfig.config.colors ? globalconfig.config.colors : ['#00a2ae']
 export default class SearchResultList extends Component {
 
     constructor(props) {
@@ -26,6 +28,10 @@ export default class SearchResultList extends Component {
 
     componentDidMount() {
         this.token1 = PubSub.subscribe('searchhits', (_, stateObj) => {
+            // allocate the color for each dataset
+            stateObj.data.forEach((dataset, i) => {
+                dataset.color = colors[i % colors.length]
+            })
             this.setState({
                 data: stateObj.data,
                 isTopk: stateObj.isTopk,
@@ -58,13 +64,8 @@ export default class SearchResultList extends Component {
             })
         }
     }
-
-    // 点击左侧候选列表
-    // 分为点击join button, union button和点击空白区域
-    // 根据唯一调用该方法处的传参，data就是绑定的组件，e就是组件对应的dataset node item，因此主要用到e而非data
-    // 不对，data是item，e是组件元素，e.target包含元素的属性、值、文本内容等信息
     handleClickedDs = (data, e) => {
-        this.props.onClickedDsChange(data.datasetID);
+        this.props.onClickedDsChange(data);
         this.setState({
             selid: data.datasetID,
             selFilename: data.fileName,
@@ -72,11 +73,12 @@ export default class SearchResultList extends Component {
         })
     }
 
-    handleClickAdd = (id,filename,e) => {
+    handleClickAdd = (id, filename, e) => {
         PubSub.publish("addSingle", {
             id: id,
             filename: filename,
         })
+        e.preventDefault()
     }
     // 哪些情况下会被调用
     // 1. 初始化渲染，返回组件的初始结构和内容
@@ -87,16 +89,17 @@ export default class SearchResultList extends Component {
             <div>
                 <List
                     style={{width: '370px', marginTop: '10px'}}
-                    size="small"
                     header={<div>Search Results</div>}
                     bordered
                     dataSource={this.state.data}
                     renderItem={(item, idx) =>
-                        <div onClick={this.handleClickedDs.bind(this, item)}
-                             className="list-group-item list-group-item-action"
-                             idx={idx} key={idx} dsid={item.datasetID}>
-                            <Avatar style={{backgroundColor: '#00a2ae', verticalAlign: 'middle'}} size='small'>{idx + 1}</Avatar>
-                            <span style={{width: '350px', textOverflow: 'ellipsis'}}>{item.fileName}</span>
+                        <List.Item onClick={this.handleClickedDs.bind(this, item)}
+                                   idx={idx} key={idx} dsid={item.datasetID}>
+                            <List.Item.Meta
+                                avatar={<Avatar
+                                    style={{backgroundColor: colors[idx % colors.length], verticalAlign: 'middle'}}
+                                    size="small">{idx + 1}</Avatar>}
+                                title={item.fileName}/>
                             <Button
                                 style={{float: 'right'}}
                                 type="default"
@@ -105,10 +108,10 @@ export default class SearchResultList extends Component {
                                 idx={idx}
                                 filename={item.fileName}
                                 shape="circle"
-                                size='small'
+                                size="small"
                                 onClick={this.handleClickAdd.bind(this, idx, item.fileName)}>+
                             </Button>
-                        </div>
+                        </List.Item>
                     }/>
                 <SearchDetail
                     id={this.state.selid}

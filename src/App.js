@@ -1,7 +1,7 @@
 import {Layout} from 'antd'
 import React, {Component} from 'react'
 import 'antd/dist/reset.css'
-import SpadasContent from './components/SpadasContent/spadasContent'
+import SpadasContent from './components/SpadasContent/SpadasContent'
 import SpadasFooter from './components/SpadasFooter/SpadasFooter'
 import SpadasHeader from './components/SpadasHeader/SpadasHeader'
 import global from './components/globalconfig'

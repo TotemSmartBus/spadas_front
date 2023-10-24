@@ -14,13 +14,10 @@ const OptionPanel = (props) => {
     const topK = useRef(5)
 
     function toggleRangeQueryMode(e) {
-        debugger
         props.setConfig({rangeQueryMode: e.target.value})
-        // setRangeQueryMode(e.target.value)
     }
 
     function togglePointQueryMode(e) {
-        debugger
         props.setConfig({pointQueryMode: e.target.value})
     }
 

@@ -1,3 +1,4 @@
+import Pubsub from 'pubsub-js'
 import React, {Component} from 'react'
 import PubSub from 'pubsub-js'
 import axios from 'axios'
@@ -5,8 +6,10 @@ import './index.css'
 import '../../globalconfig'
 import 'leaflet.markercluster'
 import {message} from 'antd'
+import staticconfig from '../../../config.json'
 
 import chinaProvider from 'leaflet.chinatmsproviders'
+import {GetDistance, convertToZoomLevel} from '../../../tools'
 
 /**
  *
@@ -113,10 +116,6 @@ export default class SpadasMap extends Component {
 
         this.state = {nodesVo: null, querynode: null, mode: null}
 
-        // 师姐的任务
-        // this.colors = ['blue', 'red', 'orange', 'green', 'violet', 'silver']
-        this.colors = ['red', 'orange', 'green', 'violet', 'blue']
-
         // 聚类标签集合
         this.clusterGroup = null
 
@@ -194,214 +193,50 @@ export default class SpadasMap extends Component {
         this.rec && this.rec.remove()
     }
 
-    drawOp(opMode, clickId) {
-        let clickIds = []
-
-        if (opMode === 0 && this.dsQueryNode) {
-            // dataset query情况，用a颜色画被query的dataset，用b颜色画点击的dataset
-            // let clickId = this.dsQueryNode.datasetID
-            // let clickIds = []
-            let queriedID = [this.dsQueryNode.datasetID];
-            clickIds.push(clickId)
-            this.drawDetail(clickIds, 'blue', 0)
-            if (queriedID >= 0) {
-                this.drawDetail(queriedID, 'red', 0)
-            } else {
-                this.drawNew('red')
-            }
-
-        } else if (opMode === 1 && this.unionNodes.length > 0) {
-            // union情况，所有union的dataset都画成红色
-            this.unionNodes.forEach((n) => {
-                clickIds.push(n)
-            })
-            this.drawDetail(clickIds, 'red', 1)
-        } else if (opMode === 2 && this.joinNodes.length === 2) {
-            // join情况，数据集q蓝色，数据集d红色，同时展示
-            let clickIds1 = []
-            let clickIds2 = []
-            clickIds1.push(this.joinNodes[0])
-            clickIds2.push(this.joinNodes[1])
-            this.drawDetail(clickIds1, 'blue', 2)
-            this.drawDetail(clickIds2, 'red', 2)
-        } else {
-            // 常规的点击操作，点击的数据集蓝色显示
-            // let clickIds = []
-            clickIds.push(clickId)
-            this.drawDetail(clickIds, 'blue', -1)
-        }
-    }
-
-    drawNew(color) {
-        if (this.queryData !== []) {
-            this.queryData.forEach(p => {
-                this.ClickedPointMarker.push(window.L.circleMarker(p, {
-                    radius: 2,
-                    color: 'black',
-                    weight: 0.5,
-                    opacity: 0.5,
-                    fill: true,
-                    fillColor: color,
-                    fillOpacity: 1,
-                }).addTo(this.map))
-            })
-        }
-    }
-
-    drawDetail(clickIds, color, opMode) {
-        clickIds.forEach((item, index) => {
-            axios.get(global.config.url + 'getds?id=' + item)
+//  TODO 不要在每次更新组件的时候请求一遍查询所有选中的数据集
+    drawDatasets(datasets) {
+        datasets.forEach(dataset => {
+            axios.get(global.config.url + 'getds?id=' + dataset.datasetID)
                 .then(res => {
                     var samplePoints = res.data.node.dataSamp
                     var rootPoints = res.data.node.matrix
                     var columns = res.data.node.columns
-                    // var points = res.data.node.matrix
-
-                    // 师姐的任务，color -> myColor
-                    // resData.forEach(p => {
-                    //     this.ClickedPointMarker.push(window.L.circleMarker(p.slice(0, 2), { radius: 1.5, color: 'black', weight: 0.5, opacity: 0.5, fill: true, fillColor: 'blue', fillOpacity: 1 }).addTo(this.map))
-                    // })
-
-                    // var heatmapLayer = HeatmapOverlay(heatmapConf)
-                    // 载入史册的一次window.
-
-                    // if (opMode < 0) {
-                    //     this.rmHeatmap()
-                    // }
+                    let color = dataset.color
                     this.rmHeatmap()
                     this.rmClusterGroup()
 
-                    if (rootPoints === null) { // 点数目太大，显示不了，故使用热力图展示
-                        // 不用热力图了，直接显示采样点看看情况
-                        // this.heatmapInstance = new window.HeatmapOverlay(heatmapConf)
-                        // this.heatmapInstance.setData(standardData)
-                        // // this.heatmapInstance.addTo(this.map)
-                        // this.map.addLayer(this.heatmapInstance)
-
-                        // 直接显示采样点
-                        samplePoints.forEach(p => {
-                            var point = window.L.circleMarker([p[1], p[0]], {
-                                radius: 2,
-                                color: 'black',
-                                weight: 0.5,
-                                opacity: 0.5,
-                                fill: true,
-                                fillColor: color,
-                                fillOpacity: 1,
-                            })
-                            point.on('click', (e) => {
-                                point.bindPopup('[' + p[1] + ',' + p[0] + ']').openPopup()
-                            })
-                            this.ClickedPointMarker.push(point.addTo(this.map))
+                    let points = rootPoints ? rootPoints : samplePoints
+                    points.forEach((p, i) => {
+                        var point = window.L.circleMarker(p, {
+                            radius: 2,
+                            color: 'black',
+                            weight: 0.5,
+                            opacity: 0.5,
+                            fill: true,
+                            fillColor: color,
+                            fillOpacity: 1,
                         })
-                    } else {
-                        rootPoints.forEach((p, i) => {
-                            var point = window.L.circleMarker(p, {
-                                radius: 2,
-                                color: 'black',
-                                weight: 0.5,
-                                opacity: 0.5,
-                                fill: true,
-                                fillColor: color,
-                                fillOpacity: 1,
-                            })
-                            point.on('click', (e) => {
-                                var msg = '[' + point.getLatLng()['lat'] + ',' + point.getLatLng()['lng'] + ']<br/>'
-                                if (columns != null) {
-                                    Object.keys(columns).forEach(k => {
-                                        msg += k + ' is ' + JSON.stringify(columns[k][i]) + '<br/>'
-                                    })
-                                }
-                                point.bindPopup(msg).openPopup()
-                            })
-                            this.ClickedPointMarker.push(point.addTo(this.map))
+                        point.on('click', (e) => {
+                            var msg = '[' + point.getLatLng()['lat'] + ',' + point.getLatLng()['lng'] + ']<br/>'
+                            if (columns != null) {
+                                Object.keys(columns).forEach(k => {
+                                    msg += k + ' is ' + JSON.stringify(columns[k][i]) + '<br/>'
+                                })
+                            }
+                            point.bindPopup(msg).openPopup()
                         })
-                    }
-
-                    // this.map.eachLayer(function (layer) {
-                    //     console.log(layer)
-                    // })
-
-                    // that.ClickedPointMarker.addTo(that.map)
-                    // this.circleShade = window.L.circle(rootPivot, { radius: rootRadius * 100000, opacity: 0.8, fillOpacity: 0, weight: 1, color: strokeColor }).addTo(this.map)
-
-                    // 师姐的任务，color -> myColor
-                    // this.circleShades.push(window.L.circle(rootPivot, { radius: rootRadius * 100000, opacity: 0.8, fillOpacity: 0, weight: 1, color: color }).addTo(this.map))
-                    // this.circleShades.push(window.L.circle(rootPivot, { radius: rootRadius * 100000, opacity: 0.8, fillOpacity: 0, weight: 1, color: color }).addTo(this.map))
-                    // this.map.flyTo(rootPivot, 9, { duration: 4 })
-                })
-        })
-    }
-
-    drawMarkers(nodes) {
-        var markerArr = []
-        window.$.each(nodes, function (index, valNode) {
-            // let marker = window.L.marker(new window.L.LatLng(val.pivot[0], val.pivot[1]), { id: val.datasetID }).bindPopup(res.data.filenames[val.datasetID]).openPopup()
-            let val = valNode.node
-            let marker = window.L.circleMarker([val.pivot[0], val.pivot[1]], {
-                radius: 3,
-                id: val.datasetID,
-                color: 'black',
-                weight: 0.5,
-                opacity: 0.5,
-                fillColor: 'green',
-                fillOpacity: 1,
-            })
-            // var marker = window.L.marker(new window.L.LatLng(val.pivot[0], val.pivot[1]), { id: val.datasetID, icon: myIcon, title: 'hello' }).bindPopup("goodbye").openPopup()
-            marker.on("click", function (e) {
-                axios.get(global.config.url + 'getds?id=' + e.target.options.id)
-                    .then(res2 => {
-                        PubSub.publish('mapClickNode', res2.data.node)
+                        this.ClickedPointMarker.push(point.addTo(this.map))
                     })
-            })
-            markerArr.push(marker)
-            // marker.addTo(that.map)
-        })
-        this.markerGroup = window.L.layerGroup(markerArr)
-        this.map.addLayer(this.markerGroup)
-    }
-
-    // 画城市节点，对于不存在城市概念的数据集集需要进行改变
-    // 目前的思路是使用回聚类标记
-    drawCityNodes(nodes) {
-        var markerArr = []
-        for (let node of nodes) {
-            let marker = window.L.marker(node.pivot)
-            marker.on("mouseover", () => {
-                marker.bindPopup(node.cityName).openPopup()
-            })
-            marker.on("click", () => {
-                // PubSub.publish('mapClickNode', nodes[i].nodeList)
-                // PubSub.publish('searchhits', nodes[i].nodeList)
-                // 都有node了直接获取citynode下面的node就好了啊还在这rangequery干嘛
-
-                // rangequery传入
-                axios.post(global.config.url + 'rangequery', {
-                    k: node.nodeCount,
-                    dim: 2,
-                    querymax: node.maxBox,
-                    querymin: node.minBox,
-                    cityName: node.cityName,
-                }).then(res => {
-                    PubSub.publish('searchhits', {
-                        data: res.data.nodes,
-                        isTopk: false,
-                    });
-                    this.rmMarkers()
-                    this.map.flyTo(node.pivot, 9)
-                    // this.drawMarkers(res.data.subCityNodes)
-                    // 虽然是nodes属性，但其中不包含index node，只包含文件名和id
-                    this.drawMarkers(res.data.nodes)
                 })
-            })
-            markerArr.push(marker)
-        }
-        this.markerGroup = window.L.layerGroup(markerArr)
-        this.map.addLayer(this.markerGroup)
+        })
+        let center = datasets[0].pivot
+        let radius = GetDistance(datasets[0].mbrmax[1], datasets[0].mbrmax[0], datasets[0].mbrmin[1], datasets[0].mbrmin[0])
+        let zoom = convertToZoomLevel(radius)
+        this.map.flyTo(center, zoom)
     }
 
-    // 画每个文件的根节点（rootToDataset = -1），并画聚类标记，其中文件节点标记和聚类标记要不相同
-    // nodes：全部的文件节点
+// 画每个文件的根节点（rootToDataset = -1），并画聚类标记，其中文件节点标记和聚类标记要不相同
+// nodes：全部的文件节点
     drawClusters(nodes) {
 
         // 初始化clusterGroup
@@ -437,40 +272,6 @@ export default class SpadasMap extends Component {
         }).addTo(this.map)
 
         this.clusterGroup.on("clusterclick", this.clusterClick)
-
-        // this.clusterGroup.eachLayer((marker) => {
-        //     console.log(marker.options.id)
-        //     // marker.bindPopup(marker.options.id)
-        // })
-
-        // 点击聚类标记，会一层层拆开聚类
-        // 增加一些信息的显示
-        // this.clusterGroup.on("clusterclick", (a) => {
-        //     let childCount = a.layer.getChildCount()
-        //     console.log("cluster " + a.layer.getAllChildMarkers() + " includes " + childCount + " markers")
-        // })
-
-        // 点击聚类标记会触发左侧结果栏显示聚类下的全部文件节点
-    }
-
-    // 用于和论文中的例子匹配而增加的默认样例flu-shot
-    // 要求初始界面地图上聚焦该数据集，左侧结果栏显示该数据集，左侧详情栏显示该数据集详情
-    loadExample() {
-        var exampleLeafletId = 0;
-        var layers = this.markersLayer.getLayers();
-        // 找到markersLayer中该数据集对应的图层，记录其_leaflet_id属性（只有通过该属性才能获取到该图层对象）
-        layers.forEach((layer) => {
-            if (layer.options.name === "phl--flu-shot.csv") {
-                exampleLeafletId = layer._leaflet_id;
-            }
-        })
-        if (exampleLeafletId === 0) {
-            console.log('there\'s no example dataset')
-            return
-        }
-        var exampleMarker = this.markersLayer.getLayer(exampleLeafletId);
-        exampleMarker.fire('click');
-        this.map.setView([40, -75], 4);
     }
 
     refreshMap() {
@@ -494,10 +295,8 @@ export default class SpadasMap extends Component {
 
         this.drawClusters(this.nodes)
         this.map.setView([40, -74], 4)
-        // this.setState({ isURQ: false });
-        this.loadExample();
-        this.isRangeQueryButtonClicked = false;
-        this.map.getContainer().classList.remove('crosshair-cursor');
+        this.isRangeQueryButtonClicked = false
+        this.map.getContainer().classList.remove('crosshair-cursor')
     }
 
 
@@ -507,7 +306,6 @@ export default class SpadasMap extends Component {
         PubSub.unsubscribe(this.joinToken)
         PubSub.unsubscribe(this.emptyAugToken)
         PubSub.unsubscribe(this.addSingleToken)
-        PubSub.unsubscribe(this.joinSingleToken)
         PubSub.unsubscribe(this.unionToken)
     }
 
@@ -561,12 +359,7 @@ export default class SpadasMap extends Component {
             this.refreshMap();
         })
 
-        //设置地图和瓦片图层
-        // 40,-80
-        // 34, 108
-        // [25, -80], 4
-        // this.map = window.L.map('map', { editable: true }).setView([27, 111], 4)
-        this.map = window.L.map('map', {editable: true}).setView([38, -77], 4)
+        this.map = window.L.map('map', {editable: true}).setView(staticconfig.map.defaultCenter, staticconfig.map.defaultZoom)
         // var OpenStreetMap = window.L.tileLayer('https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png', {
         //     minZoom: 1,
         //     maxZoom: 19,
@@ -663,12 +456,11 @@ export default class SpadasMap extends Component {
     }
 
     componentDidUpdate() {
-        const {clickId} = this.props
-        // this.setState({mode:0})
+        const {visibleDatasets} = this.props
         this.searchSingleDsReset()
         this.rmDssearchMatrix()
         this.rmMarkers()
-        this.drawOp(this.opMode, clickId)
+        this.drawDatasets(visibleDatasets)
     }
 
     render() {

@@ -15,7 +15,7 @@ const HeaderStyle = {
     alignItems: 'center',
 }
 
-const SpadasHeader = (props) => {
+const SpadasHeader = () => {
     return <Header style={HeaderStyle}>
         <Logo/>
         <TopMenu/>

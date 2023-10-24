@@ -1,7 +1,21 @@
 {
-  "rangeQueryModes": ["IA", "GBO"],
-  "pointQueryModes": ["Haus", "IA", "GBO"],
+  "rangeQueryModes": [
+    "IA",
+    "GBO"
+  ],
+  "pointQueryModes": [
+    "Haus",
+    "IA",
+    "GBO"
+  ],
   "defaultTopK": 5,
   "defaultPreviewLimit": 20,
-  "defaultTrajectoryLimit": 200
+  "defaultTrajectoryLimit": 200,
+  "map": {
+    "defaultCenter": [
+      38,
+      -77
+    ],
+    "defaultZoom": 4
+  }
 }

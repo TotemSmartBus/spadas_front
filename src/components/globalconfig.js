@@ -11,6 +11,15 @@ global.config = {
     rangeMode: 1,
     preRows: 20,
     unionIds: [],
+    colors: ['#ce5242',
+        '#f6ad49',
+        '#fbd26b',
+        '#68be8d',
+        '#2ca9e1',
+        '#4c6cb3',
+        '#9079ad',
+        '#b4866b'
+    ]
 }
 
 global.data = {
