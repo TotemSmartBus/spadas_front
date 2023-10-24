@@ -3,9 +3,8 @@ import {Button, Card, Space, Tag, Tooltip, message} from 'antd'
 import React, {Component} from 'react'
 import PubSub from 'pubsub-js'
 import axios from 'axios'
-import ReactTooltip from 'react-tooltip'
+import {Tooltip as OldTooltip} from 'react-tooltip'
 
-import './Augmentarea.css'
 import PreviewTable from './PreviewTable/PreviewTable'
 import config from '../../../../config'
 
@@ -247,11 +246,11 @@ export default class AugmentArea extends Component {
                         <Tooltip title="Empty Area">
                             <Button type="default" danger onClick={this.handleEmpty} icon={<DeleteOutlined/>}></Button>
                         </Tooltip>
-                        <ReactTooltip id="preview" type="light" place="right" clickable={true} effect="solid"
+                        <OldTooltip id="preview" type="light" place="right" clickable={true} effect="solid"
                                       className="maxZ scroll">
                             <PreviewTable header={this.state.previewHeaders} key={0} rows={this.state.previewBody}
                                           type={this.state.type}></PreviewTable>
-                        </ReactTooltip>
+                        </OldTooltip>
                     </Space>
                 </Card>
 
