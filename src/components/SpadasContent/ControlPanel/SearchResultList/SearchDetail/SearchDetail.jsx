@@ -1,9 +1,19 @@
-import {DownloadOutlined, SearchOutlined} from '@ant-design/icons'
-import {Button, Card, Descriptions, message, Space} from 'antd'
+import {DownloadOutlined, EyeOutlined, SearchOutlined} from '@ant-design/icons'
+import {Button, Card, Descriptions, message, Space, Tooltip} from 'antd'
 import axios from 'axios'
 import Pubsub from 'pubsub-js'
 import React from 'react'
-import '../../../../globalconfig'
+import '../../../../global'
+
+const PureSpatialTableHeaders = [{
+    title: 'Longitude',
+    dataIndex: 'lng',
+    key: 'lng',
+}, {
+    title: 'Latitude',
+    dataIndex: 'lat',
+    key: 'lat',
+}]
 
 const SearchDetail = (props) => {
     const {id, filename, node} = props
@@ -35,9 +45,37 @@ const SearchDetail = (props) => {
         })
     }
 
+    function handleQueryRelatedRoadClicked() {
+        props.searchRelatedRoad(props.id)
+    }
+
     function handleDownloadClicked() {
         var url = global.config.url + "file/" + props.id
         window.open(url)
+    }
+
+    function handlePreview() {
+        props.setPreviewOpen(true)
+        axios.get(global.config.url + 'getds', {params: {id: props.id}})
+            .then(res => {
+                if (res.status !== 200) {
+                    message.error('error send request')
+                    console.error(res)
+                    return
+                }
+                let columns = res.data.node.matrix.map(e => {
+                    return {lng: e[0], lat: e[1]}
+                })
+                debugger
+                props.setPreviewData({
+                    headers: PureSpatialTableHeaders,
+                    data: columns,
+                    title: 'Preview for Dataset ' + props.id,
+                })
+            }).catch(e => {
+            message.error('error send request' + e)
+            console.error(e)
+        })
     }
 
     const items = props.node ? [
@@ -70,12 +108,20 @@ const SearchDetail = (props) => {
                 bordered
                 style={{width: '350px'}}
                 column={1}
-                items={items}/>,
-            <Space style={{marginTop:'10px'}}>
+                items={items}/>
+            <Space style={{marginTop: '10px'}}>
+                <Tooltip title={'Preview Result'}>
+                    <Button data-for="preview" onClick={handlePreview} place="right"
+                            type="primary"
+                            icon={<EyeOutlined/>}
+                    ></Button>
+                </Tooltip>
                 <Button type="primary" size="small" shape="round"
-                        onClick={handleSearchRelatedClicked}><SearchOutlined/>Search Related</Button>
+                        onClick={handleSearchRelatedClicked}><SearchOutlined/>Related Datasets</Button>
                 <Button type="primary" size="small" shape="round"
-                        onClick={handleDownloadClicked}><DownloadOutlined/>Download</Button>
+                        onClick={handleQueryRelatedRoadClicked}><SearchOutlined/>Related Roads</Button>
+                <Button type="default" size="small" shape="round"
+                        onClick={handleDownloadClicked}><DownloadOutlined/></Button>
             </Space>
         </Card>] : null
 }

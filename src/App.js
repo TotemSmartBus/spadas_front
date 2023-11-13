@@ -4,18 +4,10 @@ import 'antd/dist/reset.css'
 import SpadasContent from './components/SpadasContent/SpadasContent'
 import SpadasFooter from './components/SpadasFooter/SpadasFooter'
 import SpadasHeader from './components/SpadasHeader/SpadasHeader'
-import global from './components/globalconfig'
-import config from './config'
+import global from './components/global'
 
 const {Content} = Layout
 
-const defaultConfig = {
-    rangeQueryMode: config.rangeQueryModes[0],
-    pointQueryMode: config.pointQueryModes[0],
-    k: config.defaultTopK,
-    highlightDataset: 0,
-
-}
 export default class App extends Component {
     state = {
         globalConfig: {

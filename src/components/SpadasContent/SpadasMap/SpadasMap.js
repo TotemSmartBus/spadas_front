@@ -1,103 +1,26 @@
-import Pubsub from 'pubsub-js'
 import React, {Component} from 'react'
 import PubSub from 'pubsub-js'
 import axios from 'axios'
 import './index.css'
-import '../../globalconfig'
+import '../../global'
 import 'leaflet.markercluster'
 import {message} from 'antd'
-import staticconfig from '../../../config.json'
+import 'leaflet-easybutton'
 
-import chinaProvider from 'leaflet.chinatmsproviders'
+// import chinaProvider from 'leaflet.chinatmsproviders'
 import {GetDistance, convertToZoomLevel} from '../../../tools'
 
-/**
- *
- * @param 2-d array,lat&lon&time
- * select the offset-th vehicle path to be exhibited
- */
-function getPaths(data, maxLen) {
-    var map = new Map()
-    for (var i = 0; i < data.length; i++) {
-        if (map.has(data[i][2])) {
-            map.get(data[i][2]).push(data[i])
-        } else {
-            map.set(data[i][2], [])
-            map.get(data[i][2]).push(data[i])
-        }
-
-    }
-    var result = []
-    var len = map.size > maxLen ? maxLen : map.size
-    var itr = map.values()
-    while (len > 0) {
-        result.push(itr.next().value)
-        len--
-    }
-    return result
-}
-
-/**
- * 获取Argo数据集的AV车轨迹
- * @param data
- */
-function getMainPath(data) {
-    var result = []
-    for (var i = 0; i < data.length; i++) {
-        if (data[i][2] === 0) {
-            result.push(data[i])
-        }
-    }
-    return result
-}
-
-function getLeafNodes(node, nodes) {
-    if (node.nodelist.length > 0) {
-        getLeafNodes(node.nodelist[0], nodes)
-        getLeafNodes(node.nodelist[1], nodes)
-    } else {
-        nodes.push(node)
-    }
-}
-
-var heatmapConf = {
-    "radius": 0.05,
-    "maxOpacity": .8,
-    "scaleRadius": true,
-    "useLocalExtrema": true,
-    latField: 'lat',
-    lngField: 'lng',
-    valueField: 'count',
-}
-
+const new_york_center = [40.713922, -73.956008]
 export default class SpadasMap extends Component {
     constructor(props) {
         super(props)
 
         this.map = null
-        //rectangle of range query
-        this.rec = null
-        //shades outside the rec of range query
-        // this.shades = null
         // index page's all of the dataset's marker
-        this.markers = []
         // clickedDataset's trajactory
-        this.trajactoryList = []
-
-        this.ClickedPointMarker = []
-
-        this.querynodeLine = null
-
-        // clickedDataset's circle shade
-        this.circleShades = []
-
-        this.querypointMarkers = []
+        this.trajectoryDatabase = {}
 
         this.isRangeQueryButtonClicked = false
-
-        this.markerGroup = null
-
-        this.heatmapInstance = null
 
         this.nodes = []
 
@@ -105,9 +28,6 @@ export default class SpadasMap extends Component {
 
         // 保存需要dsquery的点
         this.dsQueryNode = null
-
-        // 保存join的点集
-        this.joinNodes = []
 
         // 保存union的点集
         this.unionNodes = []
@@ -119,9 +39,7 @@ export default class SpadasMap extends Component {
         // 聚类标签集合
         this.clusterGroup = null
 
-        this.markersLayer = window.L.layerGroup();
-
-        this.queryData = [];
+        this.markersLayer = window.L.layerGroup()
     }
 
     clusterClick = (a) => {
@@ -139,70 +57,63 @@ export default class SpadasMap extends Component {
                 for (let x of res.data) {
                     this.nodes.push(x)
                 }
-                this.refreshMap();
+                this.refreshMap()
             }).catch(e => {
             console.error(e)
         })
     }
 
-    searchSingleDsReset() {
-        if (this.trajactoryList.length != null) {
-            this.trajactoryList.forEach(t => t.remove())
-            this.trajactoryList.splice(0, this.trajactoryList.length)
-        }
-        if (this.circleShades.length > 0) {
-            this.circleShades.forEach(s => s.remove())
-        }
-        if (this.ClickedPointMarker !== null && this.ClickedPointMarker.length > 0) {
-            this.ClickedPointMarker.forEach(m => m.remove())
-            this.ClickedPointMarker.splice(0, this.ClickedPointMarker.length)
-        }
-        if (this.querynodeLine !== null)
-            this.querynodeLine.remove()
-
+    loadTrajectory = (id) => {
+        console.log('loadTrajectory')
+        axios.get(global.config.url + 'trajectory?id=' + id)
+            .then(res => {
+                this.trajectoryDatabase[id] = res.data
+                this.refreshMap()
+            })
     }
 
-    rmDssearchMatrix() {
-        if (this.querypointMarkers.length != null) {
-            this.querypointMarkers.forEach(t => t.remove())
+    drawTrajectory(id) {
+        console.log('drawTrajectory')
+        if (this.trajectoryDatabase[id] == null) {
+            console.error("no trajectory for " + id)
         }
-        this.querypointMarkers.splice(0, this.querypointMarkers.length)
-    }
+        let trajectories = this.trajectoryDatabase[id]
+        for (let i = 0; i < trajectories.length; i++) {
+            let trajectory = trajectories[i]
+            let points = []
+            let msg = '[' + i + ']'
+            for (let i = 0; i < trajectory.length; i++) {
+                let p = new window.L.LatLng(trajectory[i][0], trajectory[i][1])
+                msg += p + ','
+                points.push(p)
+            }
+            let trajectoryLine = new window.L.polyline(points, {
+                color: 'red',
+                weight: 3,
+                smoothFactor: 1,
+            })
+            trajectoryLine.bindPopup(msg)
+            trajectoryLine.on('click', () => {
 
-    rmMarkers() {
-        this.markerGroup && this.markerGroup.remove()
-    }
-
-    rmHeatmap() {
-        if (this.heatmapInstance !== null) {
-            this.map.removeLayer(this.heatmapInstance)
-            this.heatmapInstance = null
+                trajectoryLine.openPopup()
+            })
+            trajectoryLine.addTo(this.map)
         }
-
-    }
-
-    removeShades() {
-        this.rec && this.rec.remove()
     }
 
     rmClusterGroup() {
         this.clusterGroup && this.map.removeLayer(this.clusterGroup)
     }
 
-    btnResetMap() {
-        this.rec && this.rec.remove()
-    }
-
 //  TODO 不要在每次更新组件的时候请求一遍查询所有选中的数据集
     drawDatasets(datasets) {
-        datasets.forEach(dataset => {
+        datasets.forEach((dataset, idx) => {
             axios.get(global.config.url + 'getds?id=' + dataset.datasetID)
                 .then(res => {
                     var samplePoints = res.data.node.dataSamp
                     var rootPoints = res.data.node.matrix
                     var columns = res.data.node.columns
                     let color = dataset.color
-                    this.rmHeatmap()
                     this.rmClusterGroup()
 
                     let points = rootPoints ? rootPoints : samplePoints
@@ -225,7 +136,7 @@ export default class SpadasMap extends Component {
                             }
                             point.bindPopup(msg).openPopup()
                         })
-                        this.ClickedPointMarker.push(point.addTo(this.map))
+                        point.addTo(this.map)
                     })
                 })
         })
@@ -235,10 +146,8 @@ export default class SpadasMap extends Component {
         this.map.flyTo(center, zoom)
     }
 
-// 画每个文件的根节点（rootToDataset = -1），并画聚类标记，其中文件节点标记和聚类标记要不相同
-// nodes：全部的文件节点
+    // 数据集维度地图展示，每个数据集标识为一个数据点，相近的会自动聚集
     drawClusters(nodes) {
-
         // 初始化clusterGroup
         this.clusterGroup = window.L.markerClusterGroup({
             maxClusterRadius: 30,
@@ -274,29 +183,19 @@ export default class SpadasMap extends Component {
         this.clusterGroup.on("clusterclick", this.clusterClick)
     }
 
+    // re-paint the map
     refreshMap() {
-        // shades, rec
-        this.btnResetMap()
-        // queryPointMarker
-        this.rmDssearchMatrix()
-        // markGroup
-        this.rmMarkers()
-        // circleShade, clickPointMarker
-        this.searchSingleDsReset()
-        this.rmHeatmap()
         this.rmClusterGroup()
 
         this.dsQueryNode = null
-        this.isDsQuery = true
-        this.joinNodes = []
         this.unionNodes = []
-        this.queryData = []
         this.opMode = -1
 
         this.drawClusters(this.nodes)
-        this.map.setView([40, -74], 4)
+        this.map.setView(new_york_center, 12)
         this.isRangeQueryButtonClicked = false
         this.map.getContainer().classList.remove('crosshair-cursor')
+        this.drawTrajectory(0)
     }
 
 
@@ -355,11 +254,7 @@ export default class SpadasMap extends Component {
             this.opMode = obj.opMode
         })
 
-        this.refreshToken = PubSub.subscribe('refresh', (_, obj) => {
-            this.refreshMap();
-        })
-
-        this.map = window.L.map('map', {editable: true}).setView(staticconfig.map.defaultCenter, staticconfig.map.defaultZoom)
+        this.map = window.L.map('map', {editable: true}).setView(global.config.map.defaultCenter, global.config.map.defaultZoom)
         // var OpenStreetMap = window.L.tileLayer('https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png', {
         //     minZoom: 1,
         //     maxZoom: 19,
@@ -393,10 +288,6 @@ export default class SpadasMap extends Component {
         // 画框按钮
         // 本来使用的是html实体编码，现在直接使用的是“□”符号
         this.drawRecButton = window.L.easyButton('<span class="star1">□</span>', function () {
-            // 点击开始绘图
-            // that.notify("Draw Rectangle.");
-
-            that.btnResetMap()
             const mapContainer = that.map.getContainer();
             mapContainer.classList.remove('crosshair-cursor');
             // that.map.getContainer().style.cursor = '';
@@ -411,7 +302,7 @@ export default class SpadasMap extends Component {
                 message.success("Drawing Cancelled.");
             }
             that.isRangeQueryButtonClicked = !that.isRangeQueryButtonClicked
-        }).addTo(this.map);
+        }).addTo(this.map)
 
         this.map.on('editable:drawing:end', function (e) {
             var mbrmax = [that.rec._bounds._northEast.lat, that.rec._bounds._northEast.lng];
@@ -452,14 +343,32 @@ export default class SpadasMap extends Component {
             });
         }
 
+        this.drawShowRoadmapButton = window.L.easyButton('<span class="star1"><EyeOutlined /></span>', handleShowRoadmap).addTo(this.map);
+
+        function handleShowRoadmap() {
+            const mapContainer = that.map.getContainer();
+            mapContainer.classList.remove('crosshair-cursor');
+            // that.map.getContainer().style.cursor = '';
+            if (!that.isRangeQueryButtonClicked) {
+                // that.map.getContainer().style.cursor = 'crosshair';
+                // that.notify("Please draw a rectangle.", "origin");
+                message.info("Please draw a rectangle.");
+                mapContainer.classList.add('crosshair-cursor');
+                that.rec = that.map.editTools.startRectangle()
+                // that.rec = that.map.
+            } else {
+                message.success("Drawing Cancelled.");
+            }
+            that.isRangeQueryButtonClicked = !that.isRangeQueryButtonClicked
+        }
+
         this.loadData(1)
+        // to test load trajectories
+        this.loadTrajectory(0)
     }
 
     componentDidUpdate() {
         const {visibleDatasets} = this.props
-        this.searchSingleDsReset()
-        this.rmDssearchMatrix()
-        this.rmMarkers()
         this.drawDatasets(visibleDatasets)
     }
 

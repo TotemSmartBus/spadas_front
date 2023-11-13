@@ -1,7 +1,7 @@
 import React from 'react'
 import TableColumn from './TableColumn'
 import TableHeader from './TableHeader'
-import '../../../../globalconfig'
+import '../../../../global'
 
 const PreviewTable = (props) => {
     const {header, rows, type} = props

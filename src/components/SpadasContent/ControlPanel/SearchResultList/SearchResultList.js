@@ -1,13 +1,13 @@
-import {Avatar, Button, List} from 'antd'
+import {Avatar, Button, List, message} from 'antd'
 import React, {Component} from 'react'
 import PubSub from 'pubsub-js'
-import globalconfig from '../../../globalconfig'
+import global from '../../../global'
 
 import SearchDetail from './SearchDetail/SearchDetail'
-import '../../../globalconfig'
+import '../../../global'
 
 
-const colors = globalconfig.config && globalconfig.config.colors ? globalconfig.config.colors : ['#00a2ae']
+const colors = global.config && global.config.colors ? global.config.colors : ['#00a2ae']
 export default class SearchResultList extends Component {
 
     constructor(props) {
@@ -65,7 +65,7 @@ export default class SearchResultList extends Component {
         }
     }
     handleClickedDs = (data, e) => {
-        this.props.onClickedDsChange(data);
+        this.props.onClickedDsChange([data])
         this.setState({
             selid: data.datasetID,
             selFilename: data.fileName,
@@ -73,11 +73,9 @@ export default class SearchResultList extends Component {
         })
     }
 
-    handleClickAdd = (id, filename, e) => {
-        PubSub.publish("addSingle", {
-            id: id,
-            filename: filename,
-        })
+    handleClickAdd = (item, e) => {
+        PubSub.publish("addSingle", item)
+        message.success('Add success')
         e.preventDefault()
     }
     // 哪些情况下会被调用
@@ -109,7 +107,7 @@ export default class SearchResultList extends Component {
                                 filename={item.fileName}
                                 shape="circle"
                                 size="small"
-                                onClick={this.handleClickAdd.bind(this, idx, item.fileName)}>+
+                                onClick={this.handleClickAdd.bind(this, item)}>+
                             </Button>
                         </List.Item>
                     }/>
@@ -121,9 +119,11 @@ export default class SearchResultList extends Component {
                     node={this.state.selNode}
                     rangeQueryMode={this.props.rangeQueryMode}
                     pointQueryMode={this.props.pointQueryMode}
+                    setPreviewOpen={this.props.setPreviewOpen}
+                    setPreviewData={this.props.setPreviewData}
+                    searchRelatedRoad={this.props.searchRelatedRoad}
                 />
             </div>
-
         )
     }
 }

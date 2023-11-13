@@ -19,6 +19,34 @@ function getItem(label, key, icon, children, type) {
     }
 }
 
+function refreshPage() {
+    window.location.reload()
+}
+
+function openDocument() {
+    window.open('./Spadas-Guideline.pdf')
+}
+
+function openOfficialSite() {
+    window.open('http://sheng.whu.edu.cn')
+}
+
+function openGithub() {
+    window.open("https://github.com/TotemSmartBus/spadas")
+}
+
+function onClick(item) {
+    switch (item.key) {
+        case 'index': refreshPage();break
+        case 'upload': break
+        case 'guide': openDocument();break
+        case 'about': openOfficialSite();break
+        case 'github': openGithub();break
+        default: return false
+    }
+    return false
+}
+
 const items = [
     getItem('Home', 'index', <HomeOutlined/>),
     getItem('Actions', 'action', <ToolOutlined/>, [
@@ -36,6 +64,7 @@ const TopMenu = (props) => {
             theme="dark"
             mode="horizontal"
             items={items}
+            onClick={onClick}
         />
     )
 }

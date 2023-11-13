@@ -15,11 +15,7 @@ const SpadasContent = (props) => {
     }
 
     function handleClickedDsChange(dataset) {
-        setDatasets([dataset])
-    }
-
-    function refreshMap() {
-        map.current.refreshMap()
+        setDatasets(dataset)
     }
 
     return (

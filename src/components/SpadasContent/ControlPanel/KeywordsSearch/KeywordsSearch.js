@@ -1,7 +1,9 @@
 import axios from 'axios'
+import {useAtom} from 'jotai'
 import React, {useState} from 'react'
 import {Input, message} from 'antd'
 import PubSub from 'pubsub-js'
+import {topKState} from '../../../StateManager'
 
 const {Search} = Input
 
@@ -9,13 +11,14 @@ const {Search} = Input
 const KeywordsSearch = (props) => {
     const [loading, setLoading] = useState(false)
 
+    const [topK, setTopK] = useAtom(topKState)
     function noResultMessage() {
         message.error('No Result')
     }
 
     function search(value, _e, info) {
         setLoading(true)
-        axios.post(global.config.url + 'keywordsquery', {kws: value, limit: global.config.k})
+        axios.post(global.config.url + 'keywordsquery', {kws: value, limit: topK})
             .then(res => {
                 setLoading(false)
                 if (res.data.nodes.length === 0) {

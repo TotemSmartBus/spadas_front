@@ -39,4 +39,27 @@ yarn run build
 
 ### GuideLine
 
-This project 
+This project contains 3 main component: `SpadasHeader`, `SpadasContent` and  `SpadasFooter`, `SpadasContent` has `OptionPanel` and `SpadasMap` 2 parts.
+
+![截屏2023-10-26 21.46.44](https://xiaohaoxing-1257815318.cos.ap-chengdu.myqcloud.com/%E6%88%AA%E5%B1%8F2023-10-26%2021.46.44.png)
+
+
+
+Map is the kernel component in this application.
+
+
+
+
+#### Map Component
+
+
+
+Design:
+
+1. Point Layer
+2. Trajectory Layer
+3. Roadmap Layer
+
+
+
+Or Multi layer design, use a chain render order.

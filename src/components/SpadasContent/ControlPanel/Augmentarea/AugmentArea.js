@@ -3,73 +3,36 @@ import {Button, Card, Space, Tag, Tooltip, message} from 'antd'
 import React, {Component} from 'react'
 import PubSub from 'pubsub-js'
 import axios from 'axios'
-import {Tooltip as OldTooltip} from 'react-tooltip'
+import '../../../global'
 
-import PreviewTable from './PreviewTable/PreviewTable'
-import config from '../../../../config'
+const emptyState = {
+    unionQId: null,
+    unionQFilename: null,
+    unionDIds: [],
+    unionDFilenames: [],
+    uniondata: [],
+    joinId: [],
+    joinFilename: [],
+    urqQId: null,
+    urqQFilename: null,
+    urqDId: null,
+    urqDFilename: null,
+    rangeMin: [],
+    rangeMax: [],
+    type: null,
+
+    augIds: [],
+    augFilenames: [],
+
+    list: [],
+    preview: {
+        open: false,
+        data: [],
+    },
+}
 
 export default class AugmentArea extends Component {
-    // unionIds = []
-    // unionFilenames = []
-    // unionMatrix = []
-
-    state = {
-        unionQId: null,
-        unionQFilename: null,
-        unionDIds: [],
-        unionDFilenames: [],
-        uniondata: [],
-        joinId: [],
-        joinFilename: [],
-        previewHeaders: [],
-        previewBody: [],
-        urqQId: null,
-        urqQFilename: null,
-        urqDId: null,
-        urqDFilename: null,
-        rangeMin: [],
-        rangeMax: [],
-        type: null,
-
-        augIds: [],
-        augFilenames: [],
-
-        list: [],
-        isPreview: false,
-    }
-    list = (length) => {
-        var res = [];
-        res.push(<PreviewTable header={this.state.previewHeaders[0]} key={0} rows={this.state.previewBody}
-                               type={this.state.type}/>)
-        return res
-    }
-
-
-    async updatePreview() {
-        if (this.state.unionId.length > 0) {
-            var that = this
-            var dto = {ids: this.state.unionId, rows: config.preRows}
-            console.log(dto.rows)
-            await axios.post(global.config.url + "preview", dto)
-                .then(async res => {
-                    that.state.previewHeaders = (res.data.headers)
-                    that.state.previewBody = (res.data.bodies)
-                })
-        }
-    }
-
-    preview() {
-        if (this.state.unionId.length > 0) {
-            var dto = {ids: this.state.unionId, rows: global.config.preRows}
-            axios.post(global.config.url + "preview", dto)
-                .then(res => {
-                    this.setState({
-                        previewHeaders: res.data.headers,
-                        previewBody: res.data.bodies,
-                    })
-                })
-        }
-    }
+    state = emptyState
 
     componentDidMount() {
         this.unionSingleToken = PubSub.subscribe("unionSingle", (_, obj) => {
@@ -87,7 +50,9 @@ export default class AugmentArea extends Component {
         })
 
         this.addSingleToken = PubSub.subscribe("addSingle", (_, obj) => {
-            this.setState({list: [...this.state.list, {id: obj.id, filename: obj.filename}]})
+            let newList = [...this.state.list, obj]
+            this.setState({list: newList})
+            this.props.onClickedDsChange(newList)
         })
 
         this.rangeToken = PubSub.subscribe('getRange', (_, obj) => {
@@ -112,7 +77,7 @@ export default class AugmentArea extends Component {
             axios.post(global.config.url + 'union', {
                 queryId: this.state.list[0].id,
                 unionIds: this.state.list[1].id,
-                preRows: global.config.preRows,
+                preRows: global.config.defaultPreviewLimit,
             }).then(res => {
                 this.setState({
                     previewHeaders: res.data.headers,
@@ -146,7 +111,7 @@ export default class AugmentArea extends Component {
                     message.success('Join Success.')
                 })
         } else {
-            message.error("Fail: Dataset Not Enough.")
+            message.error("Dataset Not Enough.")
         }
     }
 
@@ -157,7 +122,7 @@ export default class AugmentArea extends Component {
                 rangeMax: this.state.rangeMax,
                 rangeMin: this.state.rangeMin,
                 unionId: this.state.augIds[1],
-                preRows: global.config.preRows,
+                preRows: global.config.defaultPreviewLimit,
             }).then(res => {
                 this.setState({
                     previewHeaders: res.data.headers,
@@ -196,14 +161,7 @@ export default class AugmentArea extends Component {
     }
 
     handleEmpty = () => {
-        this.setState({
-            previewHeaders: [],
-            previewBody: [],
-            rangeMax: [],
-            rangeMin: [],
-            type: null,
-            list: [],
-        })
+        this.setState(emptyState)
         this.emptyToken = PubSub.publish('emptyAug', {
             opMode: 1,
         })
@@ -217,6 +175,7 @@ export default class AugmentArea extends Component {
             }
         }
         this.setState({list: newList})
+        this.props.onClickedDsChange(newList)
     }
 
     render() {
@@ -225,8 +184,9 @@ export default class AugmentArea extends Component {
                 closable
                 onClose={this.remove.bind(idx)}
                 key={item.id}>
-                {item.filename}
+                {item.fileName}
             </Tag>))
+        let isEmptyList = this.state.list.length === 0
         return (
             <div>
                 <Card
@@ -234,26 +194,21 @@ export default class AugmentArea extends Component {
                     style={{width: '370px', marginTop: '10px'}}>
                     {tags}
                     <Space style={{marginTop: '10px'}}>
-                        <Button type="default" onClick={this.handleUnion}>Union</Button>
-                        <Button type="default" onClick={this.handleJoin}>Join</Button>
-                        <Tooltip title="Union Range Query">
-                            <Button type="default" onClick={this.handleURQ}>URQ</Button>
+                        <Tooltip title={isEmptyList ? 'Select datasets first!' : 'Union Query'}>
+                            <Button type="default" onClick={this.handleUnion} disabled={isEmptyList}>Union</Button>
                         </Tooltip>
-                        <Tooltip title="Preview Result">
-                            <Button data-for="preview" data-event="focusin" data-event-off="focusout" place="right"
-                                    type="primary" icon={<EyeOutlined/>}></Button>
+                        <Tooltip title={isEmptyList ? 'Select datasets first!' : 'Join Query'}>
+                            <Button type="default" onClick={this.handleJoin} disabled={isEmptyList}>Join</Button>
+                        </Tooltip>
+                        <Tooltip title={isEmptyList ? 'Select datasets first!' : 'Union Range Query'}>
+                            <Button type="default" onClick={this.handleURQ} disabled={isEmptyList}>URQ</Button>
                         </Tooltip>
                         <Tooltip title="Empty Area">
-                            <Button type="default" danger onClick={this.handleEmpty} icon={<DeleteOutlined/>}></Button>
+                            <Button type="default" danger disabled={isEmptyList} onClick={this.handleEmpty}
+                                    icon={<DeleteOutlined/>}></Button>
                         </Tooltip>
-                        <OldTooltip id="preview" type="light" place="right" clickable={true} effect="solid"
-                                      className="maxZ scroll">
-                            <PreviewTable header={this.state.previewHeaders} key={0} rows={this.state.previewBody}
-                                          type={this.state.type}></PreviewTable>
-                        </OldTooltip>
                     </Space>
                 </Card>
-
             </div>
         )
     }

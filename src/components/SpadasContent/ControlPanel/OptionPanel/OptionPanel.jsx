@@ -1,17 +1,14 @@
-import {createContext, useRef, useState} from 'react'
+import {useAtom} from 'jotai'
 import {Collapse, Form, InputNumber} from 'antd'
-import global from '../../../globalconfig'
+import global from '../../../global'
+import {topKState} from '../../../StateManager'
 import RadioOption from './RadioOption'
 import React from 'react'
 
-
-export const RangeQueryModeContext = createContext()
-export const PointQueryModeContext = createContext()
-
 const OptionPanel = (props) => {
-    const [rangeQueryMode, setRangeQueryMode] = useState(global.config.rangeQueryMode[0])
-    const [pointQueryMode, setPointQueryMode] = useState(global.config.pointQueryMode[0])
-    const topK = useRef(5)
+    const [topK, setTopK] = useAtom(topKState)
+
+    // const topK = useRef(5)
 
     function toggleRangeQueryMode(e) {
         props.setConfig({rangeQueryMode: e.target.value})
@@ -22,26 +19,21 @@ const OptionPanel = (props) => {
     }
 
     function toggleTopK(n) {
-        topK.current = n
+        setTopK(n)
     }
 
     let rangeQuery = global.config.rangeQueryMode
     let pointQuery = global.config.pointQueryMode
     const form = <Form layout="horizontal" style={{marginTop: '10px'}}>
         <Form.Item label="Range Query">
-            <RangeQueryModeContext.Provider value={rangeQueryMode}>
-                <RadioOption list={rangeQuery} callback={toggleRangeQueryMode} default={rangeQuery[0]}/>
-            </RangeQueryModeContext.Provider>
+            <RadioOption onChange={toggleRangeQueryMode} list={rangeQuery} callback={toggleRangeQueryMode}
+                         default={rangeQuery[0]}/>
         </Form.Item>
         <Form.Item label="Examplar Search:">
-            <PointQueryModeContext.Provider value={pointQueryMode}>
-                <RadioOption list={pointQuery} callback={togglePointQueryMode} default={pointQuery[0]}/>
-            </PointQueryModeContext.Provider>
+            <RadioOption list={pointQuery} callback={togglePointQueryMode} default={pointQuery[0]}/>
         </Form.Item>
         <Form.Item label="Result Limit:">
-            <PointQueryModeContext.Provider value={pointQueryMode}>
-                <InputNumber min={1} max={10} defaultValue={5} onChange={toggleTopK}/>
-            </PointQueryModeContext.Provider>
+            <InputNumber min={1} max={10} defaultValue={topK} onChange={toggleTopK}/>
         </Form.Item>
     </Form>
     return <Collapse size="small" style={{width: '370px', marginTop: '10px'}} defaultActiveKey="params"

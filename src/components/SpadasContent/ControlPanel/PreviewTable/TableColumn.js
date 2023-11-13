@@ -19,7 +19,7 @@ const TableColumn = (props) => {
                     } else {
                         bgColor = '#cccccc'
                     }
-                    if (body.length > 6 && hiddenCols.contain(idx)) {
+                    if (body.length > 6 && hiddenCols.includes(idx)) {
                         if (idx < middle) {
                             leftTooltip = leftTooltip + item + '\n'
                         } else {

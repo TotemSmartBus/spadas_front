@@ -12,6 +12,7 @@
     "antd": "^5.10.0",
     "axios": "^1.5.1",
     "dotenv-cli": "^7.3.0",
+    "jotai": "^2.5.0",
     "leaflet": "^1.9.4",
     "leaflet-easybutton": "^2.4.0",
     "leaflet-shades": "^0.1.4",
