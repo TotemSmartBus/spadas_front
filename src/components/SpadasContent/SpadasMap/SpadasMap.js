@@ -88,7 +88,7 @@ export default class SpadasMap extends Component {
                 points.push(p)
             }
             let trajectoryLine = new window.L.polyline(points, {
-                color: 'red',
+                color: 'gray    ',
                 weight: 3,
                 smoothFactor: 1,
             })
