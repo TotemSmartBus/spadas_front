@@ -1,33 +1,67 @@
 import {Drawer, Empty, Skeleton, Table} from 'antd'
 
+import {previewMode} from '../../previewHelper'
+
 const PreviewDrawer = (props) => {
     let content = <Skeleton/>
     let tableTitle = ''
     if (props.data) {
-        debugger
-        if (props.data.data === undefined) {
-            content = <Empty/>
-        }
+        // if (props.data.data === undefined) {
+        //     content = <Empty/>
+        // }
         tableTitle = props.data.title
-        content = <Table dataSource={props.data.data} columns={props.data.headers}/>
+        content = <Table
+            onRow={(record) => {
+                return {
+                    onClick: (e) => {
+                        switch (props.mode) {
+                            case previewMode.view:
+                                props.setHighlight({
+                                    points: [[record.lng, record.lat]],
+                                    roads: [],
+                                })
+                                break
+                            case previewMode.road:
+                                props.setHighlight({
+                                    points: [record.point],
+                                    roads: [{
+                                        id: record.roadID,
+                                        points: record.roadPoints,
+                                    }],
+                                })
+                                break
+                            case previewMode.join:
+                                props.setHighlight({
+                                    points: [record.queryPoint.location, record.targetPoint.location],
+                                    roads: [],
+                                })
+                                break
+                            case previewMode.union:
+                                props.setHighlight({
+                                    points: [[record.lng, record.lat]],
+                                    roads: [],
+                                })
+                                break
+                            default:
+                                console.error('unknown type preview: ' + props.mode)
+                        }
+                    },
+                }
+            }}
+            dataSource={props.data.data}
+            columns={props.data.headers}
+            size={'small'}
+            cellFontSize={16}
+            style={{fontSize: 16}}
+        />
     }
-    // if (props.data) {
-    //     if (props.data.node === undefined || props.data.node.matrix === undefined || props.data.node.matrix.length === 0) {
-    //         content = <Empty/>
-    //     } else {
-    //         tableData = props.data.node.matrix.map(arr => {
-    //             return {lat: arr[1], lng: arr[0]}
-    //         })
-    //         tableTitle = props.data.node.fileName
-    //         content = <Table dataSource={tableData} columns={tableHeaders}/>
-    //     }
-    // }
     return <Drawer
         title="Dataset Preview"
-        width={700}
+        width={400}
         open={props.open}
         onClose={props.close}
-        // extra={}
+        placement={'right'}
+        mask={false}
     >
         <h2>{tableTitle}</h2>
         {content}

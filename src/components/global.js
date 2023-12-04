@@ -2,7 +2,7 @@
 // 搜索的参数配置和querydata作为全局变量保存
 global.config = {
     rangeQueryMode: ['IA', 'GBO'],
-    pointQueryMode: ['Haus', 'IA', 'GBO'],
+    pointQueryMode: ['Haus', 'IA', 'GBO', 'EMD'],
     // 试试将url参数抽取到命令行中作为参数
     url: process.env.REACT_APP_BACKEND_URL,
     k: 5,

@@ -62,5 +62,5 @@ export function convertToZoomLevel(radius) {
             return i
         }
     }
-    return DEFAULT_LEVEL
+    return levelMap.length - 1
 }

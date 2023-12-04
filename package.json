@@ -15,6 +15,7 @@
     "jotai": "^2.5.0",
     "leaflet": "^1.9.4",
     "leaflet-easybutton": "^2.4.0",
+    "leaflet-rotate": "^0.2.8",
     "leaflet-shades": "^0.1.4",
     "leaflet.chinatmsproviders": "^3.0.6",
     "leaflet.markercluster": "^1.5.3",
@@ -51,6 +52,7 @@
     "not op_mini all"
   ],
   "devDependencies": {
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "react-app-rewired": "^2.2.1"
   }
 }

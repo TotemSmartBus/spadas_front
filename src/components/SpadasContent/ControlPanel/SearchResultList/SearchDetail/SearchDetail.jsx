@@ -5,6 +5,8 @@ import Pubsub from 'pubsub-js'
 import React from 'react'
 import '../../../../global'
 
+import {previewMode} from '../../previewHelper'
+
 const PureSpatialTableHeaders = [{
     title: 'Longitude',
     dataIndex: 'lng',
@@ -33,7 +35,6 @@ const SearchDetail = (props) => {
                 },
                 nodesVo: res.data.nodes,
                 mode: 1,
-                opMode: 0,
                 dsQueryNode: props.node,
             })
             let pure_nodes = res.data.nodes.map(item => item.node)
@@ -66,7 +67,7 @@ const SearchDetail = (props) => {
                 let columns = res.data.node.matrix.map(e => {
                     return {lng: e[0], lat: e[1]}
                 })
-                debugger
+                props.setMode(previewMode.view)
                 props.setPreviewData({
                     headers: PureSpatialTableHeaders,
                     data: columns,

@@ -28,12 +28,13 @@ export default class SearchResultList extends Component {
 
     componentDidMount() {
         this.token1 = PubSub.subscribe('searchhits', (_, stateObj) => {
+            let list = stateObj.data.length > 10 ? stateObj.data.slice(0, 10) : stateObj.data
             // allocate the color for each dataset
-            stateObj.data.forEach((dataset, i) => {
+            list.forEach((dataset, i) => {
                 dataset.color = colors[i % colors.length]
             })
             this.setState({
-                data: stateObj.data,
+                data: list,
                 isTopk: stateObj.isTopk,
             })
         })
@@ -64,8 +65,8 @@ export default class SearchResultList extends Component {
             })
         }
     }
-    handleClickedDs = (data, e) => {
-        this.props.onClickedDsChange([data])
+    setDataset = (data, e) => {
+        this.props.setDatasets([data])
         this.setState({
             selid: data.datasetID,
             selFilename: data.fileName,
@@ -74,6 +75,7 @@ export default class SearchResultList extends Component {
     }
 
     handleClickAdd = (item, e) => {
+        // 将数据集添加到聚合的地方
         PubSub.publish("addSingle", item)
         message.success('Add success')
         e.preventDefault()
@@ -91,7 +93,7 @@ export default class SearchResultList extends Component {
                     bordered
                     dataSource={this.state.data}
                     renderItem={(item, idx) =>
-                        <List.Item onClick={this.handleClickedDs.bind(this, item)}
+                        <List.Item onClick={this.setDataset.bind(this, item)}
                                    idx={idx} key={idx} dsid={item.datasetID}>
                             <List.Item.Meta
                                 avatar={<Avatar
@@ -122,6 +124,7 @@ export default class SearchResultList extends Component {
                     setPreviewOpen={this.props.setPreviewOpen}
                     setPreviewData={this.props.setPreviewData}
                     searchRelatedRoad={this.props.searchRelatedRoad}
+                    setMode={this.props.setMode}
                 />
             </div>
         )
