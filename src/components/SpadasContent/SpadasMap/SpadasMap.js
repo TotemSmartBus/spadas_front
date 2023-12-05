@@ -6,11 +6,15 @@ import '../../global'
 import 'leaflet.markercluster'
 import {message} from 'antd'
 import 'leaflet-easybutton'
-
+import 'leaflet-rotate'
 // import chinaProvider from 'leaflet.chinatmsproviders'
 import {GetDistance, convertToZoomLevel} from '../../../tools'
 
 const new_york_center = [40.713922, -73.956008]
+const pittsburgh_center = [40.46, -79.97]
+const zoom = 14
+let lastPoints = null;
+let lastRoad = null;
 export default class SpadasMap extends Component {
     constructor(props) {
         super(props)
@@ -31,10 +35,6 @@ export default class SpadasMap extends Component {
 
         // 保存union的点集
         this.unionNodes = []
-
-        this.opMode = -1
-
-        this.state = {nodesVo: null, querynode: null, mode: null}
 
         // 聚类标签集合
         this.clusterGroup = null
@@ -73,32 +73,34 @@ export default class SpadasMap extends Component {
     }
 
     drawTrajectory(id) {
-        console.log('drawTrajectory')
         if (this.trajectoryDatabase[id] == null) {
             console.error("no trajectory for " + id)
         }
         let trajectories = this.trajectoryDatabase[id]
         for (let i = 0; i < trajectories.length; i++) {
             let trajectory = trajectories[i]
-            let points = []
-            let msg = '[' + i + ']'
-            for (let i = 0; i < trajectory.length; i++) {
-                let p = new window.L.LatLng(trajectory[i][0], trajectory[i][1])
-                msg += p + ','
-                points.push(p)
-            }
-            let trajectoryLine = new window.L.polyline(points, {
-                color: 'red',
-                weight: 3,
-                smoothFactor: 1,
-            })
-            trajectoryLine.bindPopup(msg)
-            trajectoryLine.on('click', () => {
-
-                trajectoryLine.openPopup()
-            })
-            trajectoryLine.addTo(this.map)
+            this.drawLine(i, trajectory, 'gray')
         }
+    }
+
+    drawLine(tid, trajectory, color) {
+        let points = []
+        let msg = '[T' + tid + ']'
+        for (let i = 0; i < trajectory.length; i++) {
+            let p = new window.L.LatLng(trajectory[i][0], trajectory[i][1])
+            msg += '(' + trajectory[i][0] + ',' + trajectory[i][1] + '),'
+            points.push(p)
+        }
+        let trajectoryLine = new window.L.polyline(points, {
+            color: color,
+            weight: 3,
+            smoothFactor: 1,
+        })
+        trajectoryLine.bindPopup(msg)
+        trajectoryLine.on('click', () => {
+            trajectoryLine.openPopup()
+        })
+        this.map.addLayer(trajectoryLine)
     }
 
     rmClusterGroup() {
@@ -119,16 +121,15 @@ export default class SpadasMap extends Component {
                     let points = rootPoints ? rootPoints : samplePoints
                     points.forEach((p, i) => {
                         var point = window.L.circleMarker(p, {
-                            radius: 2,
+                            radius: 4,
                             color: 'black',
                             weight: 0.5,
-                            opacity: 0.5,
                             fill: true,
                             fillColor: color,
                             fillOpacity: 1,
                         })
                         point.on('click', (e) => {
-                            var msg = '[' + point.getLatLng()['lat'] + ',' + point.getLatLng()['lng'] + ']<br/>'
+                            var msg = 'D' + dataset.datasetID + '-P' + i + '-[' + point.getLatLng()['lat'] + ',' + point.getLatLng()['lng'] + ']<br/>'
                             if (columns != null) {
                                 Object.keys(columns).forEach(k => {
                                     msg += k + ' is ' + JSON.stringify(columns[k][i]) + '<br/>'
@@ -189,23 +190,104 @@ export default class SpadasMap extends Component {
 
         this.dsQueryNode = null
         this.unionNodes = []
-        this.opMode = -1
 
         this.drawClusters(this.nodes)
-        this.map.setView(new_york_center, 12)
+        this.resetView()
         this.isRangeQueryButtonClicked = false
         this.map.getContainer().classList.remove('crosshair-cursor')
         this.drawTrajectory(0)
     }
 
+    resetView() {
+        this.map.setView(pittsburgh_center, zoom)
+    }
+
+    resetHighlight() {
+        lastPoints = null
+        lastRoad = null
+    }
+
+    drawHighlight() {
+        if (lastPoints != null) {
+            lastPoints.removeFrom(this.map)
+        }
+        if (lastRoad != null) {
+            lastRoad.removeFrom(this.map)
+        }
+        // TODO  一次只画一个，其他的要remove掉
+        if (this.props.highlight !== undefined && this.props.highlight.points.length > 0) {
+            let points = []
+            for (let i in this.props.highlight.points) {
+                let p = this.props.highlight.points[i]
+                let point = window.L.circleMarker(p, {
+                    radius: 6,
+                    color: 'red',
+                    weight: 0.5,
+                    opacity: 0.5,
+                    fill: true,
+                    fillColor: 'red',
+                    fillOpacity: 1,
+                })
+                let msg = '[' + p[0] + ',' + p[1] + ']'
+                point.bindPopup(msg)
+                point.openPopup()
+                points.push(point)
+            }
+            // draw the link between points
+            if (this.props.highlight.points.length > 1) {
+                let pointLink = new window.L.polyline(this.props.highlight.points, {
+                    color: 'green',
+                    weight: 4,
+                    smoothFactor: 1,
+                    strokeDasharray: [10, 10],
+                })
+                points.push(pointLink)
+            }
+            let layerGroup = window.L.layerGroup(points)
+            lastPoints = layerGroup
+            layerGroup.addTo(this.map)
+            if (this.props.highlight.roads.length > 0) {
+                let road = this.props.highlight.roads[0]
+                let points = []
+                let msg = '[T' + road.id + ']'
+                for (let i = 0; i < road.points.length; i++) {
+                    let p = new window.L.LatLng(road.points[i][0], road.points[i][1])
+                    msg += '(' + road.points[i][0] + ',' + road.points[i][1] + '),'
+                    points.push(p)
+                }
+                let trajectoryLine = new window.L.polyline(points, {
+                    color: 'red',
+                    weight: 6,
+                    smoothFactor: 1,
+                })
+                trajectoryLine.bindPopup(msg)
+                trajectoryLine.openPopup()
+                // trajectoryLine.on('click', () => {
+                //     trajectoryLine.openPopup()
+                // })
+                let layerGroup = window.L.layerGroup()
+                layerGroup.addLayer(trajectoryLine)
+                layerGroup.addTo(this.map)
+                lastRoad = layerGroup
+            }
+            this.map.flyTo(this.props.highlight.points[0], 16)
+        }
+    }
+
+    clearHighlight() {
+        if (lastPoints != null) {
+            lastPoints.removeFrom(this.map)
+        }
+        if (lastRoad != null) {
+            lastRoad.removeFrom(this.map)
+        }
+        lastPoints = null
+        lastRoad = null
+    }
+
 
     componentWillUnmount() {
-        PubSub.unsubscribe(this.token1)
-        PubSub.unsubscribe(this.unionSingleToken)
-        PubSub.unsubscribe(this.joinToken)
-        PubSub.unsubscribe(this.emptyAugToken)
         PubSub.unsubscribe(this.addSingleToken)
-        PubSub.unsubscribe(this.unionToken)
     }
 
 
@@ -215,46 +297,16 @@ export default class SpadasMap extends Component {
             this.props.onRef(this)
         }
 
-
-        this.token1 = PubSub.subscribe('dsquery2Map', (_, stateObj) => {
-            this.setState(stateObj)
-            if (stateObj.opMode === 0) {
-                this.dsQueryNode = stateObj.dsQueryNode
-                this.opMode = stateObj.opMode
-            }
-        })
-
-        // 添加一个union数据集
-        this.unionSingleToken = PubSub.subscribe('unionSingle', (_, obj) => {
-            let isValidNode = true
-            for (let i = 0; i < this.unionNodes.length; i++) {
-                if (this.unionNodes[i] === obj.id) {
-                    isValidNode = false
-                    break
-                }
-            }
-            if (isValidNode) {
-                this.unionNodes.push(obj.id)
-            }
-        })
-
-        // 多个数据集进行union
-        this.unionToken = PubSub.subscribe('union', (_, obj) => {
-            this.opMode = obj.opMode
-            this.drawOp(this.opMode)
-        })
-
-        // 多个数据集进行join
-        this.joinToken = PubSub.subscribe("join", (_, obj) => {
-            this.opMode = obj.opMode
-            this.drawOp(this.opMode)
-        })
-
-        this.emptyAugToken = PubSub.subscribe('emptyAug', (_, obj) => {
-            this.opMode = obj.opMode
-        })
-
-        this.map = window.L.map('map', {editable: true}).setView(global.config.map.defaultCenter, global.config.map.defaultZoom)
+        this.map = window.L.map('map', {
+            editable: true,
+            // rotate: true,
+            // rotateControl: {
+            //     closeOnZeroBearing: false,
+            // },
+            // bearing: 42,
+            maxZoom: 18,
+            minZoom: 1,
+        }).setView(global.config.map.defaultCenter, global.config.map.defaultZoom)
         // var OpenStreetMap = window.L.tileLayer('https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png', {
         //     minZoom: 1,
         //     maxZoom: 19,
@@ -343,7 +395,7 @@ export default class SpadasMap extends Component {
             });
         }
 
-        this.drawShowRoadmapButton = window.L.easyButton('<span class="star1"><EyeOutlined /></span>', handleShowRoadmap).addTo(this.map);
+        // this.drawShowRoadmapButton = window.L.easyButton('<span class="star1"><EyeOutlined /></span>', handleShowRoadmap).addTo(this.map);
 
         function handleShowRoadmap() {
             const mapContainer = that.map.getContainer();
@@ -364,12 +416,12 @@ export default class SpadasMap extends Component {
 
         this.loadData(1)
         // to test load trajectories
-        this.loadTrajectory(0)
+        // this.loadTrajectory(0)
     }
 
     componentDidUpdate() {
-        const {visibleDatasets} = this.props
-        this.drawDatasets(visibleDatasets)
+        this.drawDatasets(this.props.datasets)
+        this.drawHighlight()
     }
 
     render() {

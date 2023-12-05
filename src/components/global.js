@@ -2,19 +2,15 @@
 // 搜索的参数配置和querydata作为全局变量保存
 global.config = {
     rangeQueryMode: ['IA', 'GBO'],
-    pointQueryMode: ['Haus', 'IA', 'GBO'],
+    pointQueryMode: ['Haus', 'IA', 'GBO', 'EMD'],
     // 试试将url参数抽取到命令行中作为参数
     url: process.env.REACT_APP_BACKEND_URL,
-    k: 5,
-    defaultTopK: 5,
-    defaultPreviewLimit: 20,
-    defaultTrajectoryLimit: 200,
+    topK: 5,
+    previewLimit: 20,
     map: {
         defaultCenter: [40.713922, -73.956008],
         defaultZoom: 4,
     },
-    error: 0,
-    unionIds: [],
     colors: ['#ce5242',
         '#f6ad49',
         '#f5e56b',

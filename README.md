@@ -36,6 +36,10 @@ yarn run dev
 yarn run build
 ```
 
+4. Deploy to server
+
+If you are using WebStorm IDE, go to `Tools -> Deploy` to configure a server with directory mapping, then right-click the `build` directory, `Deployment -> Upload to XX Server` to upload asset to server.
+
 
 ### GuideLine
 

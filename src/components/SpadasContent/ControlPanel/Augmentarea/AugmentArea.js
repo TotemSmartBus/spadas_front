@@ -1,4 +1,4 @@
-import {DeleteOutlined, EyeOutlined} from '@ant-design/icons'
+import {DeleteOutlined} from '@ant-design/icons'
 import {Button, Card, Space, Tag, Tooltip, message} from 'antd'
 import React, {Component} from 'react'
 import PubSub from 'pubsub-js'
@@ -6,13 +6,6 @@ import axios from 'axios'
 import '../../../global'
 
 const emptyState = {
-    unionQId: null,
-    unionQFilename: null,
-    unionDIds: [],
-    unionDFilenames: [],
-    uniondata: [],
-    joinId: [],
-    joinFilename: [],
     urqQId: null,
     urqQFilename: null,
     urqDId: null,
@@ -20,10 +13,6 @@ const emptyState = {
     rangeMin: [],
     rangeMax: [],
     type: null,
-
-    augIds: [],
-    augFilenames: [],
-
     list: [],
     preview: {
         open: false,
@@ -35,24 +24,11 @@ export default class AugmentArea extends Component {
     state = emptyState
 
     componentDidMount() {
-        this.unionSingleToken = PubSub.subscribe("unionSingle", (_, obj) => {
-            if (this.state.unionQId === null) {
-                this.setState({
-                    unionQId: obj.id,
-                    unionQFilename: obj.filename,
-                })
-            } else {
-                this.setState(prevState => ({
-                    unionDIds: [...prevState.unionDIds, obj.id],
-                    unionDFilenames: [...prevState.unionDFilenames, obj.filename],
-                }))
-            }
-        })
 
         this.addSingleToken = PubSub.subscribe("addSingle", (_, obj) => {
             let newList = [...this.state.list, obj]
             this.setState({list: newList})
-            this.props.onClickedDsChange(newList)
+            this.props.setDatasets(newList)
         })
 
         this.rangeToken = PubSub.subscribe('getRange', (_, obj) => {
@@ -69,60 +45,30 @@ export default class AugmentArea extends Component {
         PubSub.unsubscribe(this.rangeToken)
     }
 
-    handleUnion = () => {
+    handleJoin = () => {
         if (this.state.list.length === 2) {
-            this.unionToken = PubSub.publish("union", {
-                opMode: 1,
-            })
-            axios.post(global.config.url + 'union', {
-                queryId: this.state.list[0].id,
-                unionIds: this.state.list[1].id,
-                preRows: global.config.defaultPreviewLimit,
-            }).then(res => {
-                this.setState({
-                    previewHeaders: res.data.headers,
-                    previewBody: res.data.bodies,
-                    type: res.data.type,
-                })
-                message.success("Union Success.")
-            })
+            this.props.joinSearch(this.state.list[0], this.state.list[1])
         } else {
-            message.error("Fail: Dataset Not Enough.")
+            message.error("Only support 2 datasets join.")
         }
-
-        // this.preview()
     }
 
-    handleJoin = () => {
-        if (this.state.augIds.length === 2) {
-            this.joinToken = PubSub.publish("join", {
-                opMode: 2,
-            });
-            axios.get(global.config.url + 'join?queryId=' + this.state.augIds[0] + '&datasetId=' + this.state.augIds[1]
-                + '&rows=' + global.config.preRows)
-                .then(res => {
-                    var joindata = []
-                    joindata.push(res.data.joinData)
-                    this.setState({
-                        previewHeaders: res.data.header,
-                        previewBody: joindata,
-                        type: "join",
-                    })
-                    message.success('Join Success.')
-                })
+    handleUnion = () => {
+        if (this.state.list.length === 2) {
+            this.props.unionSearch(this.state.list[0], this.state.list[1])
         } else {
-            message.error("Dataset Not Enough.")
+            message.error("Only support 2 datasets union.")
         }
     }
 
     handleURQ = () => {
-        if (this.state.augIds.length === 2 && this.state.rangeMax.length > 0) {
+        if (this.state.list.length === 2 && this.state.rangeMax.length > 0) {
             axios.post(global.config.url + 'unionRangeQuery', {
-                queryId: this.state.augIds[0],
+                queryId: this.state.list[0],
                 rangeMax: this.state.rangeMax,
                 rangeMin: this.state.rangeMin,
-                unionId: this.state.augIds[1],
-                preRows: global.config.defaultPreviewLimit,
+                unionId: this.state.list[1],
+                preRows: global.config.previewLimit,
             }).then(res => {
                 this.setState({
                     previewHeaders: res.data.headers,
@@ -131,40 +77,12 @@ export default class AugmentArea extends Component {
                 })
                 message.success('Union Range Query Success.');
             })
-        } else if (this.state.augIds.length < 2) {
+        } else if (this.state.list.length < 2) {
             message.error("Fail: Dataset Not Enough.");
         } else {
             message.error("Notice: Draw a Range First.");
         }
 
-    }
-
-    handleUnionSearch = () => {
-        axios.post(global.config.url + '/dsquery', {
-            k: global.config.k,
-            dim: 2,
-            querydata: this.state.uniondata,
-            mode: global.config.mode,
-        })
-            .then(res => {
-                PubSub.publish("dsquery2Map", {
-                    querynode: {
-                        querydata: this.state.uniondata,
-                        querytype: this.props.type,
-                        queryname: this.props.filename,
-                    },
-                    nodesVo: res.data.nodes,
-                    mode: 1,
-                })
-                PubSub.publish('searchhits', {data: res.data.nodes})
-            })
-    }
-
-    handleEmpty = () => {
-        this.setState(emptyState)
-        this.emptyToken = PubSub.publish('emptyAug', {
-            opMode: 1,
-        })
     }
 
     remove = (idx) => {
@@ -175,7 +93,7 @@ export default class AugmentArea extends Component {
             }
         }
         this.setState({list: newList})
-        this.props.onClickedDsChange(newList)
+        this.props.setDatasets(newList)
     }
 
     render() {
