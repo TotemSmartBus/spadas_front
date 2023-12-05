@@ -3,9 +3,9 @@ import {Button, Card, Descriptions, message, Space, Tooltip} from 'antd'
 import axios from 'axios'
 import Pubsub from 'pubsub-js'
 import React from 'react'
-import '../../../../global'
+import '../../../global'
 
-import {previewMode} from '../../previewHelper'
+import {previewMode} from '../previewHelper'
 
 const PureSpatialTableHeaders = [{
     title: 'Longitude',
@@ -18,46 +18,35 @@ const PureSpatialTableHeaders = [{
 }]
 
 const SearchDetail = (props) => {
-    const {id, filename, node} = props
+    const dataset = props.dataset
 
     function handleSearchRelatedClicked() {
         axios.post(global.config.url + 'dsquery', {
-            k: global.config.k,
+            k: props.parameters.topK,
             dim: 2,
-            mode: props.pointQueryMode,
-            datasetId: props.id,
+            mode: props.parameters.pointQueryMode,
+            datasetId: dataset.datasetID,
         }).then(res => {
-            Pubsub.publish("dsquery2Map", {
-                querynode: {
-                    querydata: props.matrix,
-                    querytype: props.type,
-                    queryname: props.filename,
-                },
-                nodesVo: res.data.nodes,
-                mode: 1,
-                dsQueryNode: props.node,
-            })
             let pure_nodes = res.data.nodes.map(item => item.node)
             Pubsub.publish('searchhits', {
                 data: pure_nodes,
-                isTopk: true,
             })
             message.success("Search Related Datasets Success.");
         })
     }
 
     function handleQueryRelatedRoadClicked() {
-        props.searchRelatedRoad(props.id)
+        props.searchRelatedRoad(dataset.datasetID)
     }
 
     function handleDownloadClicked() {
-        var url = global.config.url + "file/" + props.id
+        var url = global.config.url + "file/" + dataset.datasetID
         window.open(url)
     }
 
     function handlePreview() {
         props.setPreviewOpen(true)
-        axios.get(global.config.url + 'getds', {params: {id: props.id}})
+        axios.get(global.config.url + 'getds', {params: {id: dataset.datasetID}})
             .then(res => {
                 if (res.status !== 200) {
                     message.error('error send request')
@@ -71,7 +60,7 @@ const SearchDetail = (props) => {
                 props.setPreviewData({
                     headers: PureSpatialTableHeaders,
                     data: columns,
-                    title: 'Preview for Dataset ' + props.id,
+                    title: 'Preview for Dataset ' + dataset.datasetID,
                 })
             }).catch(e => {
             message.error('error send request' + e)
@@ -79,30 +68,30 @@ const SearchDetail = (props) => {
         })
     }
 
-    const items = props.node ? [
+    const items = dataset ? [
         {
             key: 'datasetName',
             label: 'Dataset Name',
-            children: filename,
+            children: dataset.fileName,
         }, {
             key: 'datasetID',
             label: 'Dataset ID',
-            children: id,
+            children: dataset.datasetID,
         }, {
             key: 'pivot',
             label: 'Pivot',
-            children: node.pivot[0].toFixed(4) + ',' + node.pivot[1].toFixed(4),
+            children: dataset.pivot[0].toFixed(4) + ',' + dataset.pivot[1].toFixed(4),
         }, {
             key: 'radius',
             label: 'Radius',
-            children: node.radius.toFixed(4),
+            children: dataset.radius.toFixed(4),
         }, {
             key: 'coveredPoints',
             label: 'Covered Points',
-            children: node.totalCoveredPoints,
+            children: dataset.totalCoveredPoints,
         },
     ] : []
-    return node ? [
+    return dataset ? [
         <Card size="small" title="Dataset Details" bordered={true} style={{width: '370px', marginTop: '10px'}}>
             <Descriptions
                 size="small"

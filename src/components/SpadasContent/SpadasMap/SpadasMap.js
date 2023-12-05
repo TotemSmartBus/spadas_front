@@ -36,8 +36,6 @@ export default class SpadasMap extends Component {
         // 保存union的点集
         this.unionNodes = []
 
-        this.state = {nodesVo: null, querynode: null, mode: null}
-
         // 聚类标签集合
         this.clusterGroup = null
 
@@ -289,10 +287,8 @@ export default class SpadasMap extends Component {
 
 
     componentWillUnmount() {
-        PubSub.unsubscribe(this.token1)
         PubSub.unsubscribe(this.unionSingleToken)
         PubSub.unsubscribe(this.joinToken)
-        PubSub.unsubscribe(this.emptyAugToken)
         PubSub.unsubscribe(this.addSingleToken)
         PubSub.unsubscribe(this.unionToken)
     }
@@ -303,11 +299,6 @@ export default class SpadasMap extends Component {
             // 在子组件中调用父组件的方法，并把当前的实例传进去
             this.props.onRef(this)
         }
-
-
-        this.token1 = PubSub.subscribe('dsquery2Map', (_, stateObj) => {
-            this.setState(stateObj)
-        })
 
         // 添加一个union数据集
         this.unionSingleToken = PubSub.subscribe('unionSingle', (_, obj) => {
@@ -332,11 +323,11 @@ export default class SpadasMap extends Component {
         this.joinToken = PubSub.subscribe("join", (_, obj) => {
             let queryDataset = obj.queryPoint
         })
-
-        this.searchToken = PubSub.subscribe('searchhits', (_, stateObj) => {
-            this.resetHighlight()
-            this.resetView()
-        })
+        // TODO set the map to result related range
+        // this.searchToken = PubSub.subscribe('searchhits', (_, stateObj) => {
+        //     this.resetHighlight()
+        //     this.resetView()
+        // })
 
         this.map = window.L.map('map', {
             editable: true,
@@ -457,7 +448,7 @@ export default class SpadasMap extends Component {
 
         this.loadData(1)
         // to test load trajectories
-        this.loadTrajectory(0)
+        // this.loadTrajectory(0)
     }
 
     componentDidUpdate() {

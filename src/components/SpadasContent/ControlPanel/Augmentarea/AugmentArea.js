@@ -68,7 +68,7 @@ export default class AugmentArea extends Component {
                 rangeMax: this.state.rangeMax,
                 rangeMin: this.state.rangeMin,
                 unionId: this.state.list[1],
-                preRows: global.config.defaultPreviewLimit,
+                preRows: global.config.previewLimit,
             }).then(res => {
                 this.setState({
                     previewHeaders: res.data.headers,

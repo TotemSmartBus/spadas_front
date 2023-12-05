@@ -20,7 +20,6 @@ export default class App extends Component {
             rangeMode: 1,
             preRows: 20,
             traNum: 200,
-            unionIds: [],
         },
     }
 

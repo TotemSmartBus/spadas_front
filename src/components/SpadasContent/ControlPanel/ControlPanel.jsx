@@ -5,7 +5,7 @@ import React, {useState} from 'react'
 import AugmentArea from './Augmentarea/AugmentArea'
 import PreviewDrawer from './Augmentarea/PreviewDrawer/PreviewDrawer'
 import KeywordsSearch from './KeywordsSearch/KeywordsSearch'
-import OptionPanel from './OptionPanel/OptionPanel'
+import QueryParameters from './QueryParameters/QueryParameters'
 import {FindRoadTableHeaders, JoinTableHeaders, previewMode, UnionTableHeaders} from './previewHelper'
 import SearchResultList from './SearchResultList/SearchResultList'
 
@@ -42,7 +42,7 @@ const ControlPanel = (props) => {
 
     function joinSearch(dataset1, dataset2) {
         setPreviewOpen(true)
-        axios.get(global.config.url + 'join?queryId=' + dataset1.datasetID + '&datasetId=' + dataset2.datasetID + '&rows=' + global.config.defaultPreviewLimit)
+        axios.get(global.config.url + 'join?queryId=' + dataset1.datasetID + '&datasetId=' + dataset2.datasetID + '&rows=' + global.config.previewLimit)
             .then(res => {
                 let title = "Join Result for " + res.data.queryDatasetID + ' and ' + res.data.targetDatasetID
                 setMode(previewMode.join)
@@ -62,7 +62,7 @@ const ControlPanel = (props) => {
         axios.post(global.config.url + 'union', {
             queryId: dataset1.datasetID,
             unionId: dataset2.datasetID,
-            preRows: global.config.defaultPreviewLimit,
+            preRows: global.config.previewLimit,
         }).then(res => {
             let title = "Union Result for " + dataset1.datasetID + ' and ' + dataset2.datasetID
             let queryData = res.data.bodies[0].map((value, index) => {
@@ -101,13 +101,14 @@ const ControlPanel = (props) => {
     return (
         <Flex align="center" vertical={true} style={props.style}>
             <KeywordsSearch style={{marginTop: '10px', width: '370px'}}/>
-            <OptionPanel setConfig={props.setConfig}/>
+            <QueryParameters parameters={props.parameters} setParameters={props.setParameters}/>
             <SearchResultList disabled="true"
                               setDatasets={props.setDatasets}
                               searchRelatedRoad={searchRelatedRoad}
                               setPreviewOpen={setPreviewOpen}
                               setPreviewData={setPreviewData}
                               setMode={setMode}
+                              parameters={props.parameters}
             />
             <AugmentArea setDatasets={props.setDatasets}
                          setPreviewOpen={setPreviewOpen}
