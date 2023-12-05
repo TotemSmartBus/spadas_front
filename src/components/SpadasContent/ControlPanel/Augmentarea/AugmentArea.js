@@ -1,4 +1,4 @@
-import {DeleteOutlined, EyeOutlined} from '@ant-design/icons'
+import {DeleteOutlined} from '@ant-design/icons'
 import {Button, Card, Space, Tag, Tooltip, message} from 'antd'
 import React, {Component} from 'react'
 import PubSub from 'pubsub-js'

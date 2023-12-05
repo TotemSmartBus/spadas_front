@@ -287,10 +287,7 @@ export default class SpadasMap extends Component {
 
 
     componentWillUnmount() {
-        PubSub.unsubscribe(this.unionSingleToken)
-        PubSub.unsubscribe(this.joinToken)
         PubSub.unsubscribe(this.addSingleToken)
-        PubSub.unsubscribe(this.unionToken)
     }
 
 
@@ -299,35 +296,6 @@ export default class SpadasMap extends Component {
             // 在子组件中调用父组件的方法，并把当前的实例传进去
             this.props.onRef(this)
         }
-
-        // 添加一个union数据集
-        this.unionSingleToken = PubSub.subscribe('unionSingle', (_, obj) => {
-            let isValidNode = true
-            for (let i = 0; i < this.unionNodes.length; i++) {
-                if (this.unionNodes[i] === obj.id) {
-                    isValidNode = false
-                    break
-                }
-            }
-            if (isValidNode) {
-                this.unionNodes.push(obj.id)
-            }
-        })
-
-        // 多个数据集进行union
-        this.unionToken = PubSub.subscribe('union', (_, obj) => {
-            //nothing
-        })
-
-        // 多个数据集进行join
-        this.joinToken = PubSub.subscribe("join", (_, obj) => {
-            let queryDataset = obj.queryPoint
-        })
-        // TODO set the map to result related range
-        // this.searchToken = PubSub.subscribe('searchhits', (_, stateObj) => {
-        //     this.resetHighlight()
-        //     this.resetView()
-        // })
 
         this.map = window.L.map('map', {
             editable: true,
@@ -427,7 +395,7 @@ export default class SpadasMap extends Component {
             });
         }
 
-        this.drawShowRoadmapButton = window.L.easyButton('<span class="star1"><EyeOutlined /></span>', handleShowRoadmap).addTo(this.map);
+        // this.drawShowRoadmapButton = window.L.easyButton('<span class="star1"><EyeOutlined /></span>', handleShowRoadmap).addTo(this.map);
 
         function handleShowRoadmap() {
             const mapContainer = that.map.getContainer();
