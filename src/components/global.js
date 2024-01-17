@@ -6,6 +6,7 @@ global.config = {
     // 试试将url参数抽取到命令行中作为参数
     url: process.env.REACT_APP_BACKEND_URL,
     topK: 5,
+    budget: 0,
     previewLimit: 20,
     map: {
         defaultCenter: [40.713922, -73.956008],

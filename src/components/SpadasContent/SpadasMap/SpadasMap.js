@@ -380,7 +380,7 @@ export default class SpadasMap extends Component {
                 mbrmin = [that.rec._bounds._southWest.lat, that.rec._bounds._southWest.lng]
             }
             axios.post(global.config.url + 'rangequery', {
-                k: global.config.k,
+                k: global.config.topK,
                 dim: 2,
                 querymax: mbrmax,
                 querymin: mbrmin,

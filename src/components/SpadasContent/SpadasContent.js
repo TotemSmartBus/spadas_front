@@ -14,6 +14,7 @@ const SpadasContent = (props) => {
         rangeQueryMode: global.config.rangeQueryMode[0],
         pointQueryMode: global.config.pointQueryMode[0],
         topK: global.config.topK,
+        budget: global.config.budget
     })
     if (props.onRef !== undefined) {
         props.onRef(this)

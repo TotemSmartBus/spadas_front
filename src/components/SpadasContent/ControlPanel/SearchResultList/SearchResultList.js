@@ -22,7 +22,7 @@ export default class SearchResultList extends Component {
 
     componentDidMount() {
         this.token1 = PubSub.subscribe('searchhits', (_, obj) => {
-            debugger
+            // debugger
             let list = obj.data.length > 10 ? obj.data.slice(0, 10) : obj.data
             // allocate the color for each dataset
             list.forEach((dataset, i) => {
