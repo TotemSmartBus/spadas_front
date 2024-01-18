@@ -9,8 +9,10 @@ global.config = {
     budget: 0,
     previewLimit: 20,
     map: {
-        defaultCenter: [40.713922, -73.956008],
-        defaultZoom: 4,
+        // defaultCenter: [40.713922, -73.956008],
+        // defaultZoom: 4,
+        defaultCenter: [31, 114.5],
+        defaultZoom: 4
     },
     colors: ['#ce5242',
         '#f6ad49',

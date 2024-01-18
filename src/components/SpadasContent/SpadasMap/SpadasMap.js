@@ -199,7 +199,7 @@ export default class SpadasMap extends Component {
     }
 
     resetView() {
-        this.map.setView(pittsburgh_center, zoom)
+        this.map.setView(global.config.map.defaultCenter, global.config.map.defaultZoom)
     }
 
     resetHighlight() {
@@ -285,6 +285,50 @@ export default class SpadasMap extends Component {
         lastRoad = null
     }
 
+    handleSearch = () => {
+        console.log(this.props.parameters.budget)
+        console.log('rec = ', this.rec)
+        var mbrmax = []
+        var mbrmin = []
+        if (this.rec === null) {
+            mbrmax = [90, 180]
+            mbrmin = [-90, -180]
+        } else {
+            mbrmax = [this.rec._bounds._northEast.lat, this.rec._bounds._northEast.lng]
+            mbrmin = [this.rec._bounds._southWest.lat, this.rec._bounds._southWest.lng]
+        }
+        if (this.props.parameters.budget > 0) {
+            axios.post(global.config.url + 'data_acq', {
+                dim: 2,
+                queryMax: mbrmax,
+                queryMin: mbrmin,
+                budget: this.props.parameters.budget
+            }).then(res => {
+                console.log('data_acq result: ', res.data.data.datasets)
+                let pure_nodes = res.data.data.datasets.map(item => item.node)
+                PubSub.publish('searchhits', {
+                    data: pure_nodes,
+                    isTopk: false
+                })
+            })
+        } else {
+            axios.post(global.config.url + 'rangequery', {
+                k: this.props.parameters.topK,
+                dim: 2,
+                querymax: mbrmax,
+                querymin: mbrmin,
+                mode: this.props.parameters.rangeQueryMode,
+            }).then(res => {
+                // that.removeShades()
+                console.log(res)
+                let pure_nodes = res.data.nodes.map(item => item.node)
+                PubSub.publish('searchhits', {
+                    data: pure_nodes,
+                    isTopk: false,
+                })
+            })
+        }
+    }
 
     componentWillUnmount() {
         PubSub.unsubscribe(this.addSingleToken)
@@ -356,44 +400,57 @@ export default class SpadasMap extends Component {
             that.isRangeQueryButtonClicked = !that.isRangeQueryButtonClicked
         }).addTo(this.map)
 
-        this.map.on('editable:drawing:end', function (e) {
-            var mbrmax = [that.rec._bounds._northEast.lat, that.rec._bounds._northEast.lng];
-            var mbrmin = [that.rec._bounds._southWest.lat, that.rec._bounds._southWest.lng];
+        this.map.on('editable:drawing:end', (e) => {
+            var mbrmax = [this.rec._bounds._northEast.lat, this.rec._bounds._northEast.lng];
+            var mbrmin = [this.rec._bounds._southWest.lat, this.rec._bounds._southWest.lng];
             PubSub.publish('getRange', {
                 rangeMax: mbrmax,
                 rangeMin: mbrmin,
             })
-            const mapContainer = that.map.getContainer();
+            console.log(this.rec)
+            const mapContainer = this.map.getContainer();
             mapContainer.classList.remove('crosshair-cursor');
         })
 
         // 搜索按钮
         // 负责urq和rq在画框以后的搜索步骤
-        window.L.easyButton('<span class="star2">&telrec;</span>', handleSearch).addTo(this.map);
+        // window.L.easyButton('<span class="star2">&telrec;</span>', handleSearch.bind(this, this.props)).addTo(this.map);
+        const searchBtn = window.L.easyButton('<span class="star2">&telrec;</span>', this.handleSearch.bind(this)).addTo(this.map);
 
-        function handleSearch() {
-            if (that.rec === null) {
-                mbrmax = [90, 180]
-                mbrmin = [-90, -180]
-            } else {
-                mbrmax = [that.rec._bounds._northEast.lat, that.rec._bounds._northEast.lng]
-                mbrmin = [that.rec._bounds._southWest.lat, that.rec._bounds._southWest.lng]
-            }
-            axios.post(global.config.url + 'rangequery', {
-                k: global.config.topK,
-                dim: 2,
-                querymax: mbrmax,
-                querymin: mbrmin,
-                mode: global.config.rangeMode,
-            }).then(res => {
-                // that.removeShades()
-                let pure_nodes = res.data.nodes.map(item => item.node)
-                PubSub.publish('searchhits', {
-                    data: pure_nodes,
-                    isTopk: false,
-                });
-            });
-        }
+        // function handleSearch1(props) {
+        //     if (that.rec === null) {
+        //         mbrmax = [90, 180]
+        //         mbrmin = [-90, -180]
+        //     } else {
+        //         mbrmax = [that.rec._bounds._northEast.lat, that.rec._bounds._northEast.lng]
+        //         mbrmin = [that.rec._bounds._southWest.lat, that.rec._bounds._southWest.lng]
+        //     }
+        //     console.log("budget = ", props.parameters)
+        //     if (global.config.budget > 0) {
+        //         axios.post(global.config.url + 'data_acq', {
+        //             dim: 2,
+        //             queryMax: mbrmax,
+        //             queryMin: mbrmin,
+        //             budget: global.config.budget
+        //         }).then(res => {
+        //             console.log('data_acq result: ', res.data)
+        //         })
+        //     }
+        //     axios.post(global.config.url + 'rangequery', {
+        //         k: global.config.topK,
+        //         dim: 2,
+        //         querymax: mbrmax,
+        //         querymin: mbrmin,
+        //         mode: global.config.rangeMode,
+        //     }).then(res => {
+        //         // that.removeShades()
+        //         let pure_nodes = res.data.nodes.map(item => item.node)
+        //         PubSub.publish('searchhits', {
+        //             data: pure_nodes,
+        //             isTopk: false,
+        //         });
+        //     });
+        // }
 
         // this.drawShowRoadmapButton = window.L.easyButton('<span class="star1"><EyeOutlined /></span>', handleShowRoadmap).addTo(this.map);
 

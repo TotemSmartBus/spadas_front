@@ -1,5 +1,5 @@
-import {Avatar, Button, List, message} from 'antd'
-import React, {Component} from 'react'
+import { Avatar, Button, List, message } from 'antd'
+import React, { Component } from 'react'
 import PubSub from 'pubsub-js'
 import global from '../../../global'
 
@@ -17,19 +17,26 @@ export default class SearchResultList extends Component {
             list: [],
             selDsType: 0,
             chooseDataset: null,
+            totalPrice: 0
         }
     }
 
     componentDidMount() {
         this.token1 = PubSub.subscribe('searchhits', (_, obj) => {
             // debugger
-            let list = obj.data.length > 10 ? obj.data.slice(0, 10) : obj.data
+            // 有的搜索（如地图上单纯地点击集合标签、data acquisition等）必须得如实返回数据集数量，而不能只显示前10个结果
+            // let list = obj.data.length > 10 ? obj.data.slice(0, 10) : obj.data
+            let list = obj.data
+            console.log(list)
+            let totalPrice = 0
             // allocate the color for each dataset
             list.forEach((dataset, i) => {
                 dataset.color = colors[i % colors.length]
+                totalPrice += dataset.price
             })
             this.setState({
                 list: list,
+                totalPrice: totalPrice
             })
         })
     }
@@ -39,6 +46,7 @@ export default class SearchResultList extends Component {
     }
 
     setDetailDataset = (data, e) => {
+        console.log(data)
         // view data points on map
         this.props.setDatasets([data])
         // view details in SearchDetail
@@ -58,20 +66,26 @@ export default class SearchResultList extends Component {
         return (
             <div>
                 <List
-                    style={{width: '370px', marginTop: '10px'}}
-                    header={<div>Search Results</div>}
+                    style={{ width: '370px', marginTop: '10px' }}
+                    header={
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <p>Search Results</p>
+                            <p>Total Price($): {this.state.totalPrice.toFixed(2)}</p>
+                        </div>
+                        
+                    }
                     bordered
                     dataSource={this.state.list}
                     renderItem={(item, idx) =>
                         <List.Item onClick={this.setDetailDataset.bind(this, item)}
-                                   idx={idx} key={idx} dsid={item.datasetID}>
+                            idx={idx} key={idx} dsid={item.datasetID}>
                             <List.Item.Meta
                                 avatar={<Avatar
-                                    style={{backgroundColor: colors[idx % colors.length], verticalAlign: 'middle'}}
+                                    style={{ backgroundColor: colors[idx % colors.length], verticalAlign: 'middle' }}
                                     size="small">{idx + 1}</Avatar>}
-                                title={item.fileName}/>
+                                title={item.fileName} />
                             <Button
-                                style={{float: 'right'}}
+                                style={{ float: 'right' }}
                                 type="default"
                                 id={"add" + idx}
                                 dsid={item.datasetID}
@@ -82,7 +96,7 @@ export default class SearchResultList extends Component {
                                 onClick={this.handleClickAdd.bind(this, item)}>+
                             </Button>
                         </List.Item>
-                    }/>
+                    } />
                 <SearchDetail
                     dataset={this.state.chooseDataset}
                     setPreviewOpen={this.props.setPreviewOpen}

@@ -9,6 +9,7 @@ const QueryParameters = (props) => {
         let parameters = props.parameters
         parameters.rangeQueryMode = e.target.value
         props.setParameters(parameters)
+        console.log('rangeQueryMode = ', global.config.rangeQueryMode)
     }
 
     function togglePointQueryMode(e) {
@@ -21,12 +22,14 @@ const QueryParameters = (props) => {
         let parameters = props.parameters
         parameters.topK = n
         props.setParameters(parameters)
+        console.log('topK = ', global.config.topK)
     }
 
     function toggleBudget(n) {
         let parameters = props.parameters
         parameters.budget = n;
         props.setParameters(parameters)
+        console.log('budget = ', global.config.budget)
     }
 
     function integerFormatter(n) {

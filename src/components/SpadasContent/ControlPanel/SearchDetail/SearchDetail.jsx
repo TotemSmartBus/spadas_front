@@ -89,7 +89,11 @@ const SearchDetail = (props) => {
             key: 'coveredPoints',
             label: 'Covered Points',
             children: dataset.totalCoveredPoints,
-        },
+        }, {
+            key: 'price',
+            label: 'Price',
+            children: dataset.price
+        }
     ] : []
     return dataset ? [
         <Card size="small" title="Dataset Details" bordered={true} style={{width: '370px', marginTop: '10px'}}>
