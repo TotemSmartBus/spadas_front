@@ -57,7 +57,7 @@ const PreviewDrawer = (props) => {
     }
     return <Drawer
         title="Dataset Preview"
-        width={400}
+        width={600}
         open={props.open}
         onClose={props.close}
         placement={'right'}

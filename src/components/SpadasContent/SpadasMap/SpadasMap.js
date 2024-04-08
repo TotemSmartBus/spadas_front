@@ -1,14 +1,14 @@
-import React, {Component} from 'react'
+import React, { Component } from 'react'
 import PubSub from 'pubsub-js'
 import axios from 'axios'
 import './index.css'
 import '../../global'
 import 'leaflet.markercluster'
-import {message} from 'antd'
+import { message } from 'antd'
 import 'leaflet-easybutton'
 import 'leaflet-rotate'
-// import chinaProvider from 'leaflet.chinatmsproviders'
-import {GetDistance, convertToZoomLevel} from '../../../tools'
+import chinaProvider from 'leaflet.chinatmsproviders'
+import { GetDistance, convertToZoomLevel } from '../../../tools'
 
 const new_york_center = [40.713922, -73.956008]
 const pittsburgh_center = [40.46, -79.97]
@@ -48,19 +48,21 @@ export default class SpadasMap extends Component {
         for (var i = 0; i < markers.length; i++) {
             clickNodes.push(this.nodeMap[markers[i].options.id])
         }
-        PubSub.publish("searchhits", {data: clickNodes})
+        PubSub.publish("searchhits", { data: clickNodes })
     }
 
     loadData = (id) => {
+        console.log('call method loadData()')
         axios.get(global.config.url + 'load?id=' + id)
             .then(res => {
+                console.log(res.data.length)
                 for (let x of res.data) {
                     this.nodes.push(x)
                 }
                 this.refreshMap()
             }).catch(e => {
-            console.error(e)
-        })
+                console.error(e)
+            })
     }
 
     loadTrajectory = (id) => {
@@ -107,7 +109,7 @@ export default class SpadasMap extends Component {
         this.clusterGroup && this.map.removeLayer(this.clusterGroup)
     }
 
-//  TODO 不要在每次更新组件的时候请求一遍查询所有选中的数据集
+    //  TODO 不要在每次更新组件的时候请求一遍查询所有选中的数据集
     drawDatasets(datasets) {
         datasets.forEach((dataset, idx) => {
             axios.get(global.config.url + 'getds?id=' + dataset.datasetID)
@@ -154,6 +156,7 @@ export default class SpadasMap extends Component {
             maxClusterRadius: 30,
             disableClusteringAtZoom: 14,
         })
+        console.log(nodes.length)
         // 先添加全部文件节点到地图上
         for (let node of nodes) {
             try {
@@ -168,7 +171,7 @@ export default class SpadasMap extends Component {
             fileMarker.on("click", function (e) {
                 let clickNodes = []
                 clickNodes.push(node);
-                PubSub.publish("searchhits", {data: clickNodes})
+                PubSub.publish("searchhits", { data: clickNodes })
             })
             fileMarker.bindPopup(`${node.fileName}`)
             this.clusterGroup.addLayers(fileMarker)
@@ -195,7 +198,7 @@ export default class SpadasMap extends Component {
         this.resetView()
         this.isRangeQueryButtonClicked = false
         this.map.getContainer().classList.remove('crosshair-cursor')
-        this.drawTrajectory(0)
+        // this.drawTrajectory(0)
     }
 
     resetView() {
@@ -336,32 +339,37 @@ export default class SpadasMap extends Component {
 
 
     componentDidMount() {
-        if (this.props.onRef !== undefined) {
-            // 在子组件中调用父组件的方法，并把当前的实例传进去
-            this.props.onRef(this)
+        console.log('call method componentDidMount')
+        // if (this.props.onRef !== undefined) {
+        //     // 在子组件中调用父组件的方法，并把当前的实例传进去
+        //     this.props.onRef(this)
+        // }
+
+        if (!this.map) {
+            this.map = window.L.map('map', {
+                editable: true,
+                // rotate: true,
+                // rotateControl: {
+                //     closeOnZeroBearing: false,
+                // },
+                // bearing: 42,
+                maxZoom: 18,
+                minZoom: 1,
+            }).setView(global.config.map.defaultCenter, global.config.map.defaultZoom)
         }
 
-        this.map = window.L.map('map', {
-            editable: true,
-            // rotate: true,
-            // rotateControl: {
-            //     closeOnZeroBearing: false,
-            // },
-            // bearing: 42,
-            maxZoom: 18,
-            minZoom: 1,
-        }).setView(global.config.map.defaultCenter, global.config.map.defaultZoom)
+
         // var OpenStreetMap = window.L.tileLayer('https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png', {
         //     minZoom: 1,
         //     maxZoom: 19,
         //     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         // }).addTo(this.map)
         // 中字，深度够
-        // this.map.addLayer(window.L.tileLayer('http://www.google.cn/maps/vt?lyrs=m@189&gl=cn&x={x}&y={y}&z={z}', {
-        //     // subdomains: ['1', '2', '3', '4'],
-        //     minZoom: 1,
-        //     maxZoom: 19
-        //   }));
+        this.map.addLayer(window.L.tileLayer('http://www.google.cn/maps/vt?lyrs=m@189&gl=cn&x={x}&y={y}&z={z}', {
+            // subdomains: ['1', '2', '3', '4'],
+            minZoom: 1,
+            maxZoom: 19
+          }));
 
         // 高德源，优势：放大倍数足够，不需要vpn；劣势：国外地图标注极少
         // this.map.addLayer(window.L.tileLayer.chinaProvider('GaoDe.Normal.Map', {maxZoom: 19, minZoom: 1}))
@@ -370,10 +378,10 @@ export default class SpadasMap extends Component {
         // this.map.addLayer(window.L.tileLayer('http://map.geoq.cn/ArcGIS/rest/services/ChinaOnlineCommunity/MapServer/tile/{z}/{y}/{x}', {maxZoom: 14, minZoom: 1}))
 
         // 使用默认osm地图源，需要翻墙加载
-        this.map.addLayer(window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 18,
-            minZoom: 1,
-        }))
+        // this.map.addLayer(window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        //     maxZoom: 18,
+        //     minZoom: 1,
+        // }))
 
         var that = this
         var mbrmax = []
@@ -477,6 +485,7 @@ export default class SpadasMap extends Component {
     }
 
     componentDidUpdate() {
+        console.log('call method componentDidUpdate')
         this.drawDatasets(this.props.datasets)
         this.drawHighlight()
     }

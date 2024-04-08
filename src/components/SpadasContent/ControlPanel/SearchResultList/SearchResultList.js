@@ -5,7 +5,7 @@ import global from '../../../global'
 
 import SearchDetail from '../SearchDetail/SearchDetail'
 import '../../../global'
-
+import axios from 'axios'
 
 const colors = global.config && global.config.colors ? global.config.colors : ['#00a2ae']
 export default class SearchResultList extends Component {
@@ -62,41 +62,73 @@ export default class SearchResultList extends Component {
         e.preventDefault()
     }
 
+    handleBuy = () => {
+        axios.post(global.config.url + 'buy', {
+            datasets: this.state.list.map(item => item.datasetID),
+            totalPrice: this.state.totalPrice
+        }).then(res => {
+            console.log(res)
+            if (res.data.success === true) {
+                message.success('Add to shopping card.')
+            } else {
+                message.error(`${res.data.errorMsg}`)
+            }
+        })
+    }
+
+    
+
     render() {
         return (
             <div>
-                <List
-                    style={{ width: '370px', marginTop: '10px' }}
-                    header={
-                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <p>Search Results</p>
-                            <p>Total Price($): {this.state.totalPrice.toFixed(2)}</p>
-                        </div>
-                        
-                    }
-                    bordered
-                    dataSource={this.state.list}
-                    renderItem={(item, idx) =>
-                        <List.Item onClick={this.setDetailDataset.bind(this, item)}
-                            idx={idx} key={idx} dsid={item.datasetID}>
-                            <List.Item.Meta
-                                avatar={<Avatar
-                                    style={{ backgroundColor: colors[idx % colors.length], verticalAlign: 'middle' }}
-                                    size="small">{idx + 1}</Avatar>}
-                                title={item.fileName} />
-                            <Button
-                                style={{ float: 'right' }}
-                                type="default"
-                                id={"add" + idx}
-                                dsid={item.datasetID}
-                                idx={idx}
-                                filename={item.fileName}
-                                shape="circle"
-                                size="small"
-                                onClick={this.handleClickAdd.bind(this, item)}>+
-                            </Button>
-                        </List.Item>
-                    } />
+                <div style={{
+                    maxHeight: '400px',
+                    overflowY: 'auto'
+                }}>
+                    <List
+                        style={{
+                            width: '370px',
+                            marginTop: '10px',
+                        }}
+                        header={
+                            <div style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                height: '20px'
+                            }}>
+                                <p><strong>Search Results</strong></p>
+                                <p>Total Price($): {this.state.totalPrice.toFixed(2)}</p>
+                                {this.state.totalPrice > 0 &&
+                                    <Button type='default' onClick={this.handleBuy}>Buy All</Button>}
+                            </div>
+
+                        }
+                        bordered
+                        dataSource={this.state.list}
+                        renderItem={(item, idx) =>
+                            <List.Item onClick={this.setDetailDataset.bind(this, item)}
+                                idx={idx} key={idx} dsid={item.datasetID}>
+                                <List.Item.Meta
+                                    avatar={<Avatar
+                                        style={{ backgroundColor: colors[idx % colors.length], verticalAlign: 'middle' }}
+                                        size="small">{idx + 1}</Avatar>}
+                                    title={item.fileName}
+                                    description={`price: ${item.price.toFixed(2)}`} />
+                                <Button
+                                    style={{ float: 'right' }}
+                                    type="default"
+                                    id={"add" + idx}
+                                    dsid={item.datasetID}
+                                    idx={idx}
+                                    filename={item.fileName}
+                                    shape="circle"
+                                    size="small"
+                                    onClick={this.handleClickAdd.bind(this, item)}>+
+                                </Button>
+                            </List.Item>
+                        } />
+                </div>
+
                 <SearchDetail
                     dataset={this.state.chooseDataset}
                     setPreviewOpen={this.props.setPreviewOpen}

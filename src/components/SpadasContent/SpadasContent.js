@@ -35,6 +35,7 @@ const SpadasContent = (props) => {
             <Col flex="auto">
                 {/* <SpadasMap ref={map} datasets={datasets} highlight={highlight} parameters style={{width: '100%', height: '100%'}}/> */}
                 <SpadasMap ref={map} datasets={datasets} highlight={highlight} parameters={parameters} setParameters={setParameters} style={{width: '100%', height: '100%'}}/>
+                {/* <SpadasMap datasets={datasets} highlight={highlight} parameters={parameters} setParameters={setParameters} style={{width: '100%', height: '100%'}}/> */}
             </Col>
         </Row>
     )
