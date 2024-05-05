@@ -11,24 +11,28 @@ message.config({
     duration: 1
 })
 
-const router = createBrowserRouter([
-    {
-        path: '/login',
-        element: <Login />
-    },
-    {
-        path: '/shop',
-        element: <Order />
-    },
-    {
-        path: '/',
-        element: <App />
-    }
-])
+// const router = createBrowserRouter([
+//     {
+//         path: '/login',
+//         element: <Login />
+//     },
+//     {
+//         path: '/shop',
+//         element: <Order />
+//     },
+//     {
+//         path: '/',
+//         element: <App />
+//     }
+// ])
 
 const root = createRoot(document.getElementById('root'))
 root.render(
-    // <Router>
+    <Router>
+        <App />
+    </Router>
+
+
     // {/* <Switch>
     //         <Route path="/login" component={Login} />
     //         <Route path="/home" component={App} />
@@ -44,10 +48,9 @@ root.render(
     //     </Routes>
 
     // </div> */}
-    // <App /> 
-    // </Router>
+
     // < React.StrictMode >
-    <RouterProvider router={router}></RouterProvider>
+    // <RouterProvider router={router}></RouterProvider>
     // </React.StrictMode >
 )
 
@@ -55,4 +58,4 @@ root.render(
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))
 // or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
-reportWebVitals(console.log);
+// reportWebVitals(console.log);
