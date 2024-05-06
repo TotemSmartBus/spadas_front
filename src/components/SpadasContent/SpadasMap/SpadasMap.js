@@ -199,7 +199,7 @@ export default class SpadasMap extends Component {
     }
 
     resetView() {
-        this.map.setView(pittsburgh_center, zoom)
+        this.map.setView(global.config.map.defaultCenter, global.config.map.defaultZoom)
     }
 
     resetHighlight() {

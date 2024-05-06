@@ -5,10 +5,11 @@ global.config = {
     pointQueryMode: ['Haus', 'IA', 'GBO', 'EMD'],
     // 试试将url参数抽取到命令行中作为参数
     url: process.env.REACT_APP_BACKEND_URL,
-    topK: 5,
+    topK: 10,
     previewLimit: 20,
     map: {
-        defaultCenter: [40.713922, -73.956008],
+        // defaultCenter: [40.713922, -73.956008],
+        defaultCenter: [31, 114.5],
         defaultZoom: 4,
     },
     colors: ['#ce5242',
