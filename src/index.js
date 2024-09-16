@@ -11,33 +11,33 @@ message.config({
     duration: 1
 })
 
-// const router = createBrowserRouter([
-//     {
-//         path: '/login',
-//         element: <Login />
-//     },
-//     {
-//         path: '/shop',
-//         element: <Order />
-//     },
-//     {
-//         path: '/',
-//         element: <App />
-//     }
-// ])
+const router = createBrowserRouter([
+    {
+        path: '/login',
+        element: <Login />
+    },
+    {
+        path: '/shop',
+        element: <Order />
+    },
+    {
+        path: '/',
+        element: <App />
+    }
+])
 
 const root = createRoot(document.getElementById('root'))
 root.render(
-    <Router>
-        <App />
-    </Router>
+    // <Router>
+    //     <App />
+    // </Router>
 
 
-    // {/* <Switch>
+    // <Switch>
     //         <Route path="/login" component={Login} />
     //         <Route path="/home" component={App} />
-    //     </Switch> */}
-    // {/* <div>
+    // </Switch>
+    // <div>
     //     <ul>
     //         <li><Link to="/home">首页</Link></li>
     //         <li><Link to="/login">其他页</Link></li>
@@ -47,11 +47,11 @@ root.render(
     //         <Route path="/login" component={Login} />
     //     </Routes>
 
-    // </div> */}
+    // </div> 
 
-    // < React.StrictMode >
-    // <RouterProvider router={router}></RouterProvider>
-    // </React.StrictMode >
+    < React.StrictMode >
+    <RouterProvider router={router}></RouterProvider>
+    </React.StrictMode >
 )
 
 

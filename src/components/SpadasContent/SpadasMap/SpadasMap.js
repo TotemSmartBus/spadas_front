@@ -53,9 +53,12 @@ export default class SpadasMap extends Component {
 
     loadData = (id) => {
         console.log('call method loadData()')
+        
         axios.get(global.config.url + 'load?id=' + id)
             .then(res => {
-                console.log(res.data.length)
+                this.nodes = [];
+                console.log(res.data.length);
+                console.log(this.nodes.length);
                 for (let x of res.data) {
                     this.nodes.push(x)
                 }
@@ -391,6 +394,10 @@ export default class SpadasMap extends Component {
         // 添加按钮控件
         // 画框按钮
         // 本来使用的是html实体编码，现在直接使用的是“□”符号
+        if (this.drawRecButton) {
+            this.map.removeControl(this.drawRecButton);  // 移除已经存在的按钮
+        }
+
         this.drawRecButton = window.L.easyButton('<span class="star1">□</span>', function () {
             const mapContainer = that.map.getContainer();
             mapContainer.classList.remove('crosshair-cursor');
@@ -423,7 +430,11 @@ export default class SpadasMap extends Component {
         // 搜索按钮
         // 负责urq和rq在画框以后的搜索步骤
         // window.L.easyButton('<span class="star2">&telrec;</span>', handleSearch.bind(this, this.props)).addTo(this.map);
-        const searchBtn = window.L.easyButton('<span class="star2">&telrec;</span>', this.handleSearch.bind(this)).addTo(this.map);
+        if (this.searchBtn) {
+            this.map.removeControl(this.searchBtn);  // 移除已经存在的按钮
+        }
+
+        this.searchBtn = window.L.easyButton('<span class="star2">&telrec;</span>', this.handleSearch.bind(this)).addTo(this.map);
 
         // function handleSearch1(props) {
         //     if (that.rec === null) {
