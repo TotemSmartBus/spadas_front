@@ -108,19 +108,19 @@ export default class AugmentArea extends Component {
         return (
             <div>
                 <Card
-                    title="Operation Area"
+                    title="Data Point Discovery"
                     style={{width: '370px', marginTop: '10px'}}>
                     {tags}
                     <Space style={{marginTop: '10px'}}>
-                        <Tooltip title={isEmptyList ? 'Select datasets first!' : 'Union Query'}>
-                            <Button type="default" onClick={this.handleUnion} disabled={isEmptyList}>Union</Button>
+                        <Tooltip title={isEmptyList ? 'Select datasets first!' : 'RangeP'}>
+                            <Button type="default" onClick={this.handleUnion} disabled={isEmptyList}>RangeP</Button>
                         </Tooltip>
-                        <Tooltip title={isEmptyList ? 'Select datasets first!' : 'Join Query'}>
-                            <Button type="default" onClick={this.handleJoin} disabled={isEmptyList}>Join</Button>
+                        <Tooltip title={isEmptyList ? 'Select datasets first!' : 'NNP'}>
+                            <Button type="default" onClick={this.handleJoin} disabled={isEmptyList}>NNP</Button>
                         </Tooltip>
-                        <Tooltip title={isEmptyList ? 'Select datasets first!' : 'Union Range Query'}>
+                        {/* <Tooltip title={isEmptyList ? 'Select datasets first!' : 'Union Range Query'}>
                             <Button type="default" onClick={this.handleURQ} disabled={isEmptyList}>URQ</Button>
-                        </Tooltip>
+                        </Tooltip> */}
                         <Tooltip title="Empty Area">
                             <Button type="default" danger disabled={isEmptyList} onClick={this.handleEmpty}
                                     icon={<DeleteOutlined/>}></Button>

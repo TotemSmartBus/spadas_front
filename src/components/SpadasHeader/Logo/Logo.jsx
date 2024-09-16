@@ -10,7 +10,7 @@ const Logo = () => {
                 display: 'inline-block',
                 color: '#00a2ae',
                 fontFamily: 'Comic Sans MS, cursive, sans-serif',
-            }}>Spadas</h1>
+            }}>Spade</h1>
         </div>)
 }
 export default Logo

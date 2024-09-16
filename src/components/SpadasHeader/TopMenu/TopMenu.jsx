@@ -24,7 +24,7 @@ function refreshPage() {
 }
 
 function openDocument() {
-    window.open('./Spadas-Guideline.pdf')
+    window.open('./SpadeSystem-Guideline.pdf')
 }
 
 function openOfficialSite() {

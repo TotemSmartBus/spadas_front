@@ -37,7 +37,7 @@ const QueryParameters = (props) => {
         </Form.Item>
     </Form>
     return <Collapse size="small" style={{width: '370px', marginTop: '10px'}} defaultActiveKey="params"
-                     items={[{key: 'params', label: 'Query Parameter', children: form}]}/>
+                     items={[{key: 'params', label: 'Dataset Discovery', children: form}]}/>
 
 }
 
